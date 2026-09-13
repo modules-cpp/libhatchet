@@ -141,10 +141,6 @@ template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, in
 template<hxrange_concept_ range_t_>
 hxinline hxattr_flatten void hxflat_set<key_t_, capacity_, compare_t_, traits_>::add_range(
 		bool is_sorted_, range_t_&& range_) noexcept {
-	if(!is_sorted_) {
-		this->add_range(hxforward<range_t_>(range_));
-		return;
-	}
 	hxrestrict_t<decltype(range_.begin())> it_(range_.begin());
 	const auto end_ = range_.end();
 	key_t_* hxrestrict dst_ = m_end_;
@@ -153,7 +149,10 @@ hxinline hxattr_flatten void hxflat_set<key_t_, capacity_, compare_t_, traits_>:
 		hxassertf(dst_ != limit_, "hxflat_set full %zd", this->capacity());
 		::new(dst_) key_t_(hxforward_like<range_t_>(*it_));
 	}
-	hxassert_hard(dst_ != limit_, "hxflat_set full %zd", this->capacity());
+	hxassert_hard(dst_ <= limit_, "hxflat_set full %zd", this->capacity());
+	if(!is_sorted_) {
+		hxheapsort<key_t_*>(this->data(), dst_, hxkey_less_t<key_t_>());
+	}
 	m_end_ = dst_;
 	hxassertf(this->validate_(), "wrong_order");
 }

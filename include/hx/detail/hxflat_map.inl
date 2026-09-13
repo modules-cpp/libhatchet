@@ -200,10 +200,6 @@ template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t cap
 template<hxrange_concept_ range_t_>
 hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::add_range(
 		bool is_sorted_, range_t_&& range_) noexcept {
-	if(!is_sorted_) {
-		this->add_range(hxforward<range_t_>(range_));
-		return;
-	}
 	hxrestrict_t<decltype(range_.begin())> it_(range_.begin());
 	const auto end_ = range_.end();
 	key_t_* hxrestrict k_ = m_keys_.data();
@@ -214,8 +210,11 @@ hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_
 		::new(k_ + size_) key_t_((*it_).a);
 		::new(v_ + size_) mapped_t_(hxforward_like<range_t_>((*it_).b));
 	}
-	hxassert_hard(size_ < m_keys_.capacity(), "hxflat_map full %zd", m_keys_.capacity());
+	hxassert_hard(size_ <= m_keys_.capacity(), "hxflat_map full %zd", m_keys_.capacity());
 	m_size_ = size_;
+	if(!is_sorted_) {
+		hxheapsort<sort_iterator_>(sort_iterator_(k_, v_), sort_iterator_(k_ + size_, v_ + size_), sort_iterator_less_());
+	}
 	hxassertf(this->validate_(), "wrong_order");
 }
 

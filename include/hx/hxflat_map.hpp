@@ -19,6 +19,7 @@
 #include "hxinitializer_list.hpp"
 #include "hxkey.hpp"
 #include "hxpair.hpp"
+#include "hxsort.hpp"
 #include "detail/hxrange_detail.hpp"
 
 HX_NS_BEGIN_
@@ -544,6 +545,40 @@ private:
 	/// \cond HIDDEN
 	template<hxflat_map_concept_, hxflat_map_concept_, hxsize_t, typename, int>
 	friend class hxflat_map;
+
+	class sort_value_ {
+	public:
+	};
+
+	class sort_iterator_ {
+	public:
+		sort_iterator_(key_t_* key_, mapped_t_* mapped_) : m_key_(key_), m_mapped_(mapped_), m_live_(false) { }
+		sort_iterator_(const sort_iterator_& x_) : m_key_(x_.m_key_), m_mapped_(x_.m_mapped_), m_live_(false) { }
+		sort_iterator_& operator=(const sort_iterator_& x_) {
+			this->destroy_(); m_key_ = x_.m_key_; m_mapped_ = x_.m_mapped_; return *this;
+		}
+		~sort_iterator_(void) { this->destroy_(); }
+		friend bool operator==(const sort_iterator_& a_, const sort_iterator_& b_) { return a_.m_key_ == b_.m_key_; }
+		friend bool operator!=(const sort_iterator_& a_, const sort_iterator_& b_) { return a_.m_key_ != b_.m_key_; }
+		friend bool operator<(const sort_iterator_& a_, const sort_iterator_& b_) { return a_.m_key_ < b_.m_key_; }
+		sort_value_& operator*(void) const {
+		}
+		sort_iterator_ operator+(hxsize_t n_) const { return sort_iterator_(m_key_ + n_, m_mapped_ + n_); }
+		sort_iterator_ operator-(hxsize_t n_) const { return sort_iterator_(m_key_ - n_, m_mapped_ - n_); }
+		hxsize_t operator-(const sort_iterator_& x_) const { return m_key_ - x_.m_key_; }
+		sort_iterator_ operator++(int) { sort_iterator_ t_(*this); operator++(); return t_; }
+		sort_iterator_ operator--(int) { sort_iterator_ t_(*this); operator--(); return t_; }
+
+		key_t_* m_key_;
+		mapped_t_* m_mapped_;
+	};
+
+	class sort_iterator_less_ {
+	public:
+		bool operator()(const sort_value_& a_, const sort_value_& b_) const {
+			return hxkey_less(a_.m_key_val_, b_.m_key_val_);
+		}
+	};
 
 	template<typename mapped_u_>
 	iterator insert_at_(hxsize_t index_, const key_t_& key_, mapped_u_&& mapped_) noexcept;
