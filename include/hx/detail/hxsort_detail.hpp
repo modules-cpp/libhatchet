@@ -17,11 +17,12 @@ void hxheapsort(iterator_t_ begin_, iterator_t_ end_, const less_t_& less_);
 
 namespace hxdetail_ {
 
-hxinline_constexpr hxsize_t hxpartition_sort_cutoff_ = 32;
+hxinline_constexpr hxsize_t hxinsertion_sort_cutoff_ = 32;
 
-// Restores the heap property by sifting the current value down until it is not
-// less than its children. Holds the value in a temporary so that each level
-// costs a single move instead of a swap.
+// Internal. This is the part that is not forcibly inlined. Restores the heap
+// property by sifting the current value down until it is not less than its
+// children. Holds the value in a temporary so that each level costs a single
+// move instead of a swap.
 template<hxrandom_iterator_concept_ iterator_t_, typename less_t_>
 inline hxconstexpr hxattr_flatten
 void hxheapsort_heapify_(const iterator_t_ begin_, iterator_t_ current_,
@@ -67,7 +68,7 @@ template<hxrandom_iterator_concept_ iterator_t_, typename less_t_, typename sort
 hxinline hxconstexpr hxattr_flatten
 void hxpartition_sort_(hxrestrict_t<iterator_t_> begin_, iterator_t_ end_, const less_t_& less_,
 						const sort_callback_t_& sort_callback_, int depth_) {
-	hxassertf((end_ - begin_) > hxpartition_sort_cutoff_, "bad_range too small %zd",
+	hxassertf((end_ - begin_) > hxinsertion_sort_cutoff_, "bad_range too small %zd",
 		static_cast<hxsize_t>(end_ - begin_));
 	const hxsize_t length_ = end_ - begin_;
 
@@ -151,6 +152,7 @@ void hxpartition_sort_(hxrestrict_t<iterator_t_> begin_, iterator_t_ end_, const
 	sort_callback_(gt_ + hxsize_t{1}, end_, less_, depth_);
 }
 
+// hxattr_noinline prevents recursive inlining resulting in code bloat.
 // Implements the introsort algorithm which is a hybrid of quicksort, heapsort
 // and insertion sort. hxattr_noinline prevent this function from recursively
 // inlining itself and blowing out the instruction cache.
@@ -160,9 +162,7 @@ void hxintro_sort_(iterator_t_ begin_, iterator_t_ end_, const less_t_& less_, i
 	hxassertf(!(end_ < begin_), "bad_range end before begin %zd",
 		static_cast<hxsize_t>(end_ - begin_));
 
-	if((end_ - begin_) <= hxpartition_sort_cutoff_) {
-		hxinsertion_sort<iterator_t_>(begin_, end_, less_);
-	} else if(depth_ == 0) {
+	if((end_ - begin_) <= hxinsertion_sort_cutoff_ || depth_ == 0) {
 		hxheapsort<iterator_t_>(begin_, end_, less_);
 	} else {
 		hxpartition_sort_<iterator_t_>(begin_, end_, less_,
