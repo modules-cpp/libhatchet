@@ -213,7 +213,7 @@ hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_
 	hxassert_hard(size_ <= m_keys_.capacity(), "hxflat_map full %zd", m_keys_.capacity());
 	m_size_ = size_;
 	if(!is_sorted_) {
-		hxheapsort<sort_iterator_>(sort_iterator_(k_, v_), sort_iterator_(k_ + size_, v_ + size_), sort_iterator_less_());
+		hxheapsort<sort_iterator_>(sort_iterator_(k_, v_), sort_iterator_(k_ + size_, v_ + size_), hxkey_less_t<sort_value_>());
 	}
 	hxassertf(this->validate_(), "wrong_order");
 }

@@ -144,12 +144,11 @@ hxinline hxattr_flatten void hxflat_set<key_t_, capacity_, compare_t_, traits_>:
 	hxrestrict_t<decltype(range_.begin())> it_(range_.begin());
 	const auto end_ = range_.end();
 	key_t_* hxrestrict dst_ = m_end_;
-	const key_t_* const limit_ = this->data() + this->capacity();
 	for(; it_ != end_; ++it_, ++dst_) {
-		hxassertf(dst_ != limit_, "hxflat_set full %zd", this->capacity());
+		hxassertf(dst_ < this->data() + this->capacity(), "hxflat_set full %zd", this->capacity());
 		::new(dst_) key_t_(hxforward_like<range_t_>(*it_));
 	}
-	hxassert_hard(dst_ <= limit_, "hxflat_set full %zd", this->capacity());
+	hxassert_hard(dst_ <= this->data() + this->capacity(), "hxflat_set full %zd", this->capacity());
 	if(!is_sorted_) {
 		hxheapsort<key_t_*>(this->data(), dst_, hxkey_less_t<key_t_>());
 	}
@@ -372,7 +371,7 @@ template<typename key_u_>
 hxinline hxattr_flatten auto hxflat_set<key_t_, capacity_, compare_t_, traits_>::insert_at_(
 		key_t_* it_, key_u_&& key_) noexcept -> const key_t_* {
 	key_t_* const end_ = m_end_;
-	hxassert_hard(end_ != this->data() + this->capacity(), "hxflat_set full %zd", this->capacity());
+	hxassert_hard(end_ < this->data() + this->capacity(), "hxflat_set full %zd", this->capacity());
 	if(end_ != it_) {
 		::new(end_) key_t_(hxmove(*(end_ - 1)));
 		for(key_t_* pos_ = end_ - 1; pos_ != it_; --pos_) {

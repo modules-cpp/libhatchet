@@ -546,38 +546,71 @@ private:
 	template<hxflat_map_concept_, hxflat_map_concept_, hxsize_t, typename, int>
 	friend class hxflat_map;
 
+	// Internal. Not using hxswap with temporaries is an internal contract the
+	// heapsort code relies on.
 	class sort_value_ {
 	public:
+		// Refers to the pointed-to key and mapped value in place. m_key_val_
+		// and m_mapped_val_ remain raw memory.
+		sort_value_(key_t_* key_, mapped_t_* mapped_) :
+			m_key_(key_), m_mapped_(mapped_) { }
+		sort_value_(const sort_value_&) = default;
+
+		// Detaches into owned storage and takes over as the live instance.
+		sort_value_(sort_value_&& sv_) : m_key_(hxnull), m_mapped_(hxnull) {
+			::new(&m_key_val_) key_t_(hxmove(sv_.m_key_ ? *sv_.m_key_ : sv_.m_key_val_));
+			::new(&m_mapped_val_) mapped_t_(hxmove(sv_.m_mapped_ ? *sv_.m_mapped_ : sv_.m_mapped_val_));
+		}
+
+		~sort_value_(void) {
+			if(!m_key_) {
+				m_key_val_.~key_t_();
+				m_mapped_val_.~mapped_t_();
+			}
+		}
+
+		void operator=(sort_value_&& sv_) {
+			(m_key_ ? *m_key_ : m_key_val_) = hxmove(sv_.m_key_ ? *sv_.m_key_ : sv_.m_key_val_);
+			(m_mapped_ ? *m_mapped_ : m_mapped_val_) = hxmove(sv_.m_mapped_ ? *sv_.m_mapped_ : sv_.m_mapped_val_);
+		}
+
+		friend bool operator<(const sort_value_& a_, const sort_value_& b_) {
+			return hxkey_less(a_.m_key_ ? *a_.m_key_ : a_.m_key_val_, b_.m_key_ ? *b_.m_key_ : b_.m_key_val_);
+		}
+
+		// Internal. Assumes both sides refer to array elements, as is the case
+		// for every hxswap call the heapsort code makes on live iterators.
+		friend void hxswap(sort_value_ a_, sort_value_ b_) {
+			hxassertf(a_.m_key_ && b_.m_key_, "sys_err");
+			hxswap(*a_.m_key_, *b_.m_key_);
+			hxswap(*a_.m_mapped_, *b_.m_mapped_);
+		}
+
+	private:
+		// Raw storage when m_key_ != null.
+		union { key_t_ m_key_val_; };
+		union { mapped_t_ m_mapped_val_; };
+		key_t_* m_key_;
+		mapped_t_* m_mapped_;
 	};
 
 	class sort_iterator_ {
 	public:
-		sort_iterator_(key_t_* key_, mapped_t_* mapped_) : m_key_(key_), m_mapped_(mapped_), m_live_(false) { }
-		sort_iterator_(const sort_iterator_& x_) : m_key_(x_.m_key_), m_mapped_(x_.m_mapped_), m_live_(false) { }
-		sort_iterator_& operator=(const sort_iterator_& x_) {
-			this->destroy_(); m_key_ = x_.m_key_; m_mapped_ = x_.m_mapped_; return *this;
-		}
-		~sort_iterator_(void) { this->destroy_(); }
+		sort_iterator_(key_t_* key_, mapped_t_* mapped_) : m_key_(key_), m_mapped_(mapped_) { }
 		friend bool operator==(const sort_iterator_& a_, const sort_iterator_& b_) { return a_.m_key_ == b_.m_key_; }
 		friend bool operator!=(const sort_iterator_& a_, const sort_iterator_& b_) { return a_.m_key_ != b_.m_key_; }
 		friend bool operator<(const sort_iterator_& a_, const sort_iterator_& b_) { return a_.m_key_ < b_.m_key_; }
-		sort_value_& operator*(void) const {
-		}
+		sort_value_ operator*(void) const { return sort_value_(m_key_, m_mapped_); }
 		sort_iterator_ operator+(hxsize_t n_) const { return sort_iterator_(m_key_ + n_, m_mapped_ + n_); }
 		sort_iterator_ operator-(hxsize_t n_) const { return sort_iterator_(m_key_ - n_, m_mapped_ - n_); }
 		hxsize_t operator-(const sort_iterator_& x_) const { return m_key_ - x_.m_key_; }
+		sort_iterator_& operator++(void) { ++m_key_; ++m_mapped_; return *this; }
+		sort_iterator_& operator--(void) { --m_key_; --m_mapped_; return *this; }
 		sort_iterator_ operator++(int) { sort_iterator_ t_(*this); operator++(); return t_; }
 		sort_iterator_ operator--(int) { sort_iterator_ t_(*this); operator--(); return t_; }
 
 		key_t_* m_key_;
 		mapped_t_* m_mapped_;
-	};
-
-	class sort_iterator_less_ {
-	public:
-		bool operator()(const sort_value_& a_, const sort_value_& b_) const {
-			return hxkey_less(a_.m_key_val_, b_.m_key_val_);
-		}
 	};
 
 	template<typename mapped_u_>
