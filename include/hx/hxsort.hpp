@@ -65,7 +65,7 @@ template<hxrandom_iterator_concept_ iterator_t_, typename less_t_>
 hxinline hxconstexpr hxattr_flatten
 void hxheapsort(iterator_t_ begin_, iterator_t_ end_, const less_t_& less_) {
 	// This is well defined for null in C++ not C.
-	if((end_ - begin_) <= hxinsertion_sort_cutoff_) {
+	if((end_ - begin_) <= hxdetail_::hxinsertion_sort_cutoff_) {
 		hxinsertion_sort<iterator_t_>(begin_, end_, less_);
 		return;
 	}

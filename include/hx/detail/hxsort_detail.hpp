@@ -17,7 +17,7 @@ void hxheapsort(iterator_t_ begin_, iterator_t_ end_, const less_t_& less_);
 
 namespace hxdetail_ {
 
-hxinline_constexpr hxsize_t hxinsertion_sort_cutoff_ = 32;
+hxinline_constexpr hxsize_t hxinsertion_sort_cutoff_ = 64;
 
 // Internal. This is the part that is not forcibly inlined. Restores the heap
 // property by sifting the current value down until it is not less than its
