@@ -127,7 +127,7 @@ TEST_F(hxsearch_test_f, search_grinder) {
 			EXPECT_TRUE(!(*ptr < t) && !(t < *ptr));
 		}
 	}
-	EXPECT_TRUE(check_stats(485, 485, 0, 100, 100, 285, 0, 627, 0, 1729, 0));
+	EXPECT_TRUE(check_stats(493, 493, 0, 100, 100, 293, 0, 433, 0, 1628, 0));
 }
 
 TEST(hxcopy_range_test, boundary_elements) {

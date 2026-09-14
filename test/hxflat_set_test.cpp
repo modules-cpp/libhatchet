@@ -829,7 +829,7 @@ TEST_F(hxflat_set_test_f, add_range_is_sorted_appends_to_empty) {
 	EXPECT_EQ(s[2]->value(), 33);
 	EXPECT_EQ(s[3]->value(), 34);
 	EXPECT_EQ(s[4]->value(), 35);
-	EXPECT_TRUE(check_stats(10, 0, 0, 5, 0, 5, 0, 0, 0, 0, 4));
+	EXPECT_TRUE(check_stats(10, 0, 0, 5, 0, 5, 0, 0, 0, 0, 0));
 }
 
 TEST_F(hxflat_set_test_f, add_range_is_sorted_appends_to_nonempty) {
@@ -843,7 +843,7 @@ TEST_F(hxflat_set_test_f, add_range_is_sorted_appends_to_nonempty) {
 	EXPECT_EQ(s[2]->value(), 33);
 	EXPECT_EQ(s[3]->value(), 34);
 	EXPECT_EQ(s[4]->value(), 35);
-	EXPECT_TRUE(check_stats(10, 2, 0, 5, 2, 3, 0, 0, 0, 1, 5));
+	EXPECT_TRUE(check_stats(10, 2, 0, 5, 2, 3, 0, 0, 0, 0, 1));
 }
 
 TEST_F(hxflat_set_test_f, add_range_is_sorted_empty_range_preserves_existing) {
@@ -854,7 +854,7 @@ TEST_F(hxflat_set_test_f, add_range_is_sorted_empty_range_preserves_existing) {
 	EXPECT_EQ(s.size(), 2);
 	EXPECT_EQ(s[0]->value(), 31);
 	EXPECT_EQ(s[1]->value(), 32);
-	EXPECT_TRUE(check_stats(7, 2, 0, 5, 2, 0, 0, 0, 0, 0, 2));
+	EXPECT_TRUE(check_stats(7, 2, 0, 5, 2, 0, 0, 0, 0, 0, 1));
 }
 
 TEST_F(hxflat_set_test_f, add_range_is_sorted_false_falls_back_to_sorting) {
@@ -867,7 +867,7 @@ TEST_F(hxflat_set_test_f, add_range_is_sorted_false_falls_back_to_sorting) {
 	EXPECT_EQ(s[2]->value(), 33);
 	EXPECT_EQ(s[3]->value(), 34);
 	EXPECT_EQ(s[4]->value(), 35);
-	EXPECT_TRUE(check_stats(10, 0, 0, 5, 0, 5, 0, 5, 0, 0, 6));
+	EXPECT_TRUE(check_stats(13, 3, 0, 5, 0, 8, 0, 8, 0, 8, 0));
 }
 
 TEST_F(hxflat_set_test_f, add_range_is_sorted_uses_fewer_operators_than_unsorted) {

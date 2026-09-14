@@ -138,17 +138,53 @@ EOF
 fi
 
 # Branch coverage. Post-processing is required to merge multiple instantiations.
-# This is load bearing.
-python3 - coverage_test_branches.json <<'HX_EOF_' || HX_STATUS_=$?
-import json, sys
+# gcov numbers the calls and the conditional branches on a line in one sequence
+# and gcovr merges branches by that number, so instantiations with a different
+# number of calls on a line never merge. Merging by the ordinal of the
+# conditional branch on the line counts a branch as covered when any
+# instantiation takes it. gcovr still decides which lines have branches and
+# which are excluded.
+python3 - coverage_test_branches.json branches_only "$HX_GCOV_" "$HX_DIR_" <<'HX_EOF_' || HX_STATUS_=$?
+import glob, json, os, subprocess, sys
+taken = {}
+for gcda in sorted(glob.glob(os.path.join(sys.argv[2], "*.gcda"))):
+	report = subprocess.run([sys.argv[3], "--json-format", "--branch-probabilities",
+		"--stdout", "--object-directory", sys.argv[2], gcda],
+		capture_output=True, text=True, check=True)
+	for f in json.loads(report.stdout)["files"]:
+		path = f["file"]
+		if os.path.isabs(path):
+			path = os.path.relpath(path, sys.argv[4])
+		for l in f["lines"]:
+			ordinal = 0
+			for b in l["branches"]:
+				if b.get("throw"):
+					continue
+				key = (path, l["line_number"], ordinal)
+				taken[key] = taken.get(key, 0) + b["count"]
+				ordinal += 1
 files = json.load(open(sys.argv[1]))["files"]
 missing = False
 for f in sorted(files, key=lambda x: x["file"]):
 	if "/include/" not in ("/" + f["file"]):
 		continue
-	numbers = sorted(l["line_number"] for l in f["lines"]
-				if not l.get("gcovr/excluded")
-				and any(b["count"] == 0 for b in l.get("branches", [])))
+	numbers = []
+	for l in f["lines"]:
+		if l.get("gcovr/excluded") or not l.get("branches"):
+			continue
+		# A line without gcov branch data is reported instead of passing silently.
+		ordinal = 0
+		while True:
+			key = (f["file"], l["line_number"], ordinal)
+			if key not in taken:
+				if ordinal == 0:
+					numbers.append(l["line_number"])
+				break
+			if taken[key] == 0:
+				numbers.append(l["line_number"])
+				break
+			ordinal += 1
+	numbers = sorted(set(numbers))
 	if not numbers:
 		continue
 	missing = True

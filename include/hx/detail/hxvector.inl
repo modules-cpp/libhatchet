@@ -538,9 +538,9 @@ inline hxattr_flatten void hxvector<T_, capacity_>::pop_heap(void) noexcept {
 		begin_->T_::~T_();
 		return;
 	}
-	*begin_ = hxmove(*end_);
+	auto value_ = hxmove(*end_);
 	end_->T_::~T_();
-	hxdetail_::hxheapsort_heapify_(begin_, begin_, end_, hxkey_less_t<T_>{});
+	hxdetail_::hxheapsort_heapify_(begin_, begin_, end_, value_, hxkey_less_t<T_>{});
 }
 
 template<hxvector_concept_ T_, hxsize_t capacity_>

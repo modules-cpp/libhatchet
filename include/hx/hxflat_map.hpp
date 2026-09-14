@@ -367,8 +367,8 @@ public:
 		return hxless_range(a_, b_);
 	}
 
-	/// Inserts every key-value pair from a range by moving each pair with
-	/// `insert`. The range elements must provide `a` and `b` fields.
+	/// Inserts every key-value pair from a range with `insert`, forwarding the
+	/// `a` and `b` fields of each element into storage.
 	/// - `range` : The range to move key-value pairs from.
 	template<hxrange_concept_ range_t_>
 	void add_range(range_t_&& range_) noexcept;
@@ -376,7 +376,8 @@ public:
 	/// Appends every key-value pair from a sorted range to the end of the
 	/// arrays without searching for an insertion point or shifting existing
 	/// pairs. Requires the first key in `range` to be ordered after the last key of
-	/// the map and requires `range` to be sorted.
+	/// the map and requires `range` to be sorted. Otherwise sorts the arrays
+	/// after appending.
 	/// - `is_sorted` : True when `range` is sorted and ordered after the map.
 	/// - `range` : The range to move key-value pairs from.
 	template<hxrange_concept_ range_t_>
@@ -445,18 +446,14 @@ public:
 	/// - `key` : The key to search for.
 	hxattr_nodiscard bool has_value(const key_t_& key_) const;
 
-	/// Inserts a key-value pair. When `traits & hxtrait_multi` is unset and a matching key
-	/// already exists, returns an iterator to the existing element without
-	/// inserting. Otherwise inserts in sorted order and returns an iterator to
-	/// the new element.
+	/// Inserts a key-value pair. When `traits & hxtrait_multi` is unset and a
+	/// matching key already exists, returns an iterator to the existing element
+	/// without inserting. Otherwise inserts in sorted order and returns an
+	/// iterator to the new element. Both arguments are forwarded into storage.
 	/// - `key` : The key of the new element.
 	/// - `value` : The mapped value of the new element.
-	iterator insert(const key_t_& key_, const mapped_t_& mapped_) noexcept;
-
-	/// Move-value overload of `insert`.
-	/// - `key` : The key of the new element.
-	/// - `value` : The mapped value forwarded into storage.
-	iterator insert(const key_t_& key_, mapped_t_&& mapped_) noexcept;
+	template<typename key_u_, typename mapped_u_>
+	iterator insert(key_u_&& key_, mapped_u_&& mapped_) noexcept;
 
 	/// Returns a const pointer to the underlying key storage. Only the first
 	/// `size()` elements are constructed.
@@ -557,37 +554,36 @@ private:
 		sort_value_(const sort_value_&) = default;
 
 		// Detaches into owned storage and takes over as the live instance.
-		sort_value_(sort_value_&& sv_) : m_key_(hxnull), m_mapped_(hxnull) {
-			::new(&m_key_val_) key_t_(hxmove(sv_.m_key_ ? *sv_.m_key_ : sv_.m_key_val_));
-			::new(&m_mapped_val_) mapped_t_(hxmove(sv_.m_mapped_ ? *sv_.m_mapped_ : sv_.m_mapped_val_));
+		sort_value_(sort_value_&& sv_) {
+			::new(&m_key_val_) key_t_(hxmove(*sv_.m_key_));
+			::new(&m_mapped_val_) mapped_t_(hxmove(*sv_.m_mapped_));
+			m_key_ = &m_key_val_;
+			m_mapped_ = &m_mapped_val_;
 		}
 
 		~sort_value_(void) {
-			if(!m_key_) {
+			if(m_key_ == &m_key_val_) {
 				m_key_val_.~key_t_();
 				m_mapped_val_.~mapped_t_();
 			}
 		}
 
 		void operator=(sort_value_&& sv_) {
-			(m_key_ ? *m_key_ : m_key_val_) = hxmove(sv_.m_key_ ? *sv_.m_key_ : sv_.m_key_val_);
-			(m_mapped_ ? *m_mapped_ : m_mapped_val_) = hxmove(sv_.m_mapped_ ? *sv_.m_mapped_ : sv_.m_mapped_val_);
+			*m_key_ = hxmove(*sv_.m_key_);
+			*m_mapped_ = hxmove(*sv_.m_mapped_);
 		}
 
 		friend bool operator<(const sort_value_& a_, const sort_value_& b_) {
-			return hxkey_less(a_.m_key_ ? *a_.m_key_ : a_.m_key_val_, b_.m_key_ ? *b_.m_key_ : b_.m_key_val_);
+			return hxkey_less(*a_.m_key_, *b_.m_key_);
 		}
 
-		// Internal. Assumes both sides refer to array elements, as is the case
-		// for every hxswap call the heapsort code makes on live iterators.
 		friend void hxswap(sort_value_ a_, sort_value_ b_) {
-			hxassertf(a_.m_key_ && b_.m_key_, "sys_err");
 			hxswap(*a_.m_key_, *b_.m_key_);
 			hxswap(*a_.m_mapped_, *b_.m_mapped_);
 		}
 
 	private:
-		// Raw storage when m_key_ != null.
+		// Raw storage unless m_key_ and m_mapped_ point at it.
 		union { key_t_ m_key_val_; };
 		union { mapped_t_ m_mapped_val_; };
 		key_t_* m_key_;
@@ -613,9 +609,8 @@ private:
 		mapped_t_* m_mapped_;
 	};
 
-	template<typename mapped_u_>
-	iterator insert_at_(hxsize_t index_, const key_t_& key_, mapped_u_&& mapped_) noexcept;
-	bool validate_(void) const;
+	template<typename key_u_, typename mapped_u_>
+	iterator insert_at_(hxsize_t index_, key_u_&& key_, mapped_u_&& mapped_) noexcept;
 
 	hxsize_t m_size_;
 	hxallocator<key_t_, capacity_> m_keys_;

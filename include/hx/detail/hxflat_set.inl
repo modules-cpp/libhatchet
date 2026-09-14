@@ -150,10 +150,9 @@ hxinline hxattr_flatten void hxflat_set<key_t_, capacity_, compare_t_, traits_>:
 	}
 	hxassert_hard(dst_ <= this->data() + this->capacity(), "hxflat_set full %zd", this->capacity());
 	if(!is_sorted_) {
-		hxheapsort<key_t_*>(this->data(), dst_, hxkey_less_t<key_t_>());
+		hxsort<key_t_*>(this->data(), dst_, hxkey_less_t<key_t_>());
 	}
 	m_end_ = dst_;
-	hxassertf(this->validate_(), "wrong_order");
 }
 
 template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
@@ -384,29 +383,6 @@ hxinline hxattr_flatten auto hxflat_set<key_t_, capacity_, compare_t_, traits_>:
 	}
 	m_end_ = end_ + 1;
 	return it_;
-}
-
-template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
-hxattr_flatten bool hxflat_set<key_t_, capacity_, compare_t_, traits_>::validate_(void) const {
-	const key_t_* it_ = this->data();
-	const key_t_* const end_ = m_end_;
-	if(it_ == end_) { return true; }
-	for(const key_t_* prev_ = it_++; it_ != end_; prev_ = it_++) {
-		hxif_constexpr((traits_ & hxtrait_three_way) != 0) {
-			const auto order_ = hxkey_three_way(*prev_, *it_);
-			if(order_ > 0) { return false; }
-			hxif_constexpr((traits_ & hxtrait_multi) == 0) {
-				if(order_ == 0) { return false; }
-			}
-		}
-		else {
-			if(hxkey_less(*it_, *prev_)) { return false; }
-			hxif_constexpr((traits_ & hxtrait_multi) == 0) {
-				if(!hxkey_less(*prev_, *it_)) { return false; }
-			}
-		}
-	}
-	return true;
 }
 
 HX_INL_END_

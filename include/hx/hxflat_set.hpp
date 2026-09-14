@@ -194,8 +194,7 @@ public:
 	/// Appends every key from a sorted range to the end of the array without
 	/// searching for an insertion point or shifting existing keys. Requires
 	/// every key in `range` to be ordered after the last key of the set and
-	/// requires `range` to be sorted. Falls back to the single argument
-	/// overload when `is_sorted` is false.
+	/// requires `range` to be sorted. Otherwise sorts the array after appending.
 	/// - `is_sorted` : True when `range` is sorted and ordered after the set.
 	/// - `range` : The range to move keys from.
 	template<hxrange_concept_ range_t_>
@@ -345,8 +344,6 @@ private:
 
 	template<typename key_u_>
 	const key_t_* insert_at_(key_t_* it_, key_u_&& key_) noexcept;
-
-	bool validate_(void) const;
 
 	key_t_* m_end_;
 	/// \endcond

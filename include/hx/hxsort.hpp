@@ -65,15 +65,16 @@ template<hxrandom_iterator_concept_ iterator_t_, typename less_t_>
 hxinline hxconstexpr hxattr_flatten
 void hxheapsort(iterator_t_ begin_, iterator_t_ end_, const less_t_& less_) {
 	// This is well defined for null in C++ not C.
-	if((end_ - begin_) <= hxdetail_::hxinsertion_sort_cutoff_) {
+	if((end_ - begin_) <= hxdetail_::hxheapsort_cutoff_) {
 		hxinsertion_sort<iterator_t_>(begin_, end_, less_);
 		return;
 	}
 	hxdetail_::hxmake_heap_<iterator_t_>(begin_, end_, less_);
 	const hxrestrict_t<iterator_t_> begin_r_(begin_);
 	for(iterator_t_ it_ = end_ - ptrdiff_t{1}; begin_r_ < it_; --it_) {
-		hxswap(*begin_r_, *it_);
-		hxdetail_::hxheapsort_heapify_<iterator_t_>(begin_r_, begin_r_, it_, less_);
+		auto value_ = hxmove(*it_);
+		*it_ = hxmove(*begin_r_);
+		hxdetail_::hxheapsort_heapify_<iterator_t_>(begin_r_, begin_r_, it_, value_, less_);
 	}
 }
 
