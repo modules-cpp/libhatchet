@@ -544,10 +544,10 @@ inline hxattr_flatten void hxvector<T_, capacity_>::pop_heap(void) noexcept {
 }
 
 template<hxvector_concept_ T_, hxsize_t capacity_>
-template<typename... args_t_>
-hxinline hxattr_flatten T_& hxvector<T_, capacity_>::push_back(args_t_&&... args_) noexcept {
+template<typename ref_t_>
+hxinline hxattr_flatten T_& hxvector<T_, capacity_>::push_back(ref_t_&& x_) noexcept {
 	hxassert_hard(!this->full(), "stack_full %zd", this->capacity());
-	return *::new(m_end_++) T_(hxforward<args_t_>(args_)...);
+	return *::new(m_end_++) T_(hxforward<ref_t_>(x_));
 }
 
 // Fixes gcc + optimizer + sanitizer -Wmaybe-uninitialized bug.

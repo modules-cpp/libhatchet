@@ -102,13 +102,21 @@ hxinline hxattr_flatten void hxdeque<T_, capacity_>::clear(void) noexcept {
 template<hxdeque_concept_ T_, hxsize_t capacity_>
 template<typename... args_t_>
 hxinline hxattr_flatten void hxdeque<T_, capacity_>::emplace_back(args_t_&&... args_) noexcept {
-	this->push_back(hxforward<args_t_>(args_)...);
+	hxassert_hard(m_tail_ - m_head_ < static_cast<size_t>(this->capacity()), "deque_full");
+	const size_t mask_ = static_cast<size_t>(this->capacity()) - 1u;
+	T_* const slot_ = this->data() + (m_tail_ & mask_);
+	++m_tail_;
+	::new(slot_) T_(hxforward<args_t_>(args_)...);
 }
 
 template<hxdeque_concept_ T_, hxsize_t capacity_>
 template<typename... args_t_>
 hxinline hxattr_flatten void hxdeque<T_, capacity_>::emplace_front(args_t_&&... args_) noexcept {
-	this->push_front(hxforward<args_t_>(args_)...);
+	hxassert_hard(m_tail_ - m_head_ < static_cast<size_t>(this->capacity()), "deque_full");
+	const size_t mask_ = static_cast<size_t>(this->capacity()) - 1u;
+	--m_head_;
+	T_* const slot_ = this->data() + (m_head_ & mask_);
+	::new(slot_) T_(hxforward<args_t_>(args_)...);
 }
 
 template<hxdeque_concept_ T_, hxsize_t capacity_>
@@ -176,23 +184,23 @@ hxinline hxattr_flatten void hxdeque<T_, capacity_>::pop_front(void) noexcept {
 }
 
 template<hxdeque_concept_ T_, hxsize_t capacity_>
-template<typename... args_t_>
-hxinline hxattr_flatten void hxdeque<T_, capacity_>::push_back(args_t_&&... args_) noexcept {
+template<typename ref_t_>
+hxinline hxattr_flatten void hxdeque<T_, capacity_>::push_back(ref_t_&& x_) noexcept {
 	hxassert_hard(m_tail_ - m_head_ < static_cast<size_t>(this->capacity()), "deque_full");
 	const size_t mask_ = static_cast<size_t>(this->capacity()) - 1u;
 	T_* const slot_ = this->data() + (m_tail_ & mask_);
 	++m_tail_;
-	::new(slot_) T_(hxforward<args_t_>(args_)...);
+	::new(slot_) T_(hxforward<ref_t_>(x_));
 }
 
 template<hxdeque_concept_ T_, hxsize_t capacity_>
-template<typename... args_t_>
-hxinline hxattr_flatten void hxdeque<T_, capacity_>::push_front(args_t_&&... args_) noexcept {
+template<typename ref_t_>
+hxinline hxattr_flatten void hxdeque<T_, capacity_>::push_front(ref_t_&& x_) noexcept {
 	hxassert_hard(m_tail_ - m_head_ < static_cast<size_t>(this->capacity()), "deque_full");
 	const size_t mask_ = static_cast<size_t>(this->capacity()) - 1u;
 	--m_head_;
 	T_* const slot_ = this->data() + (m_head_ & mask_);
-	::new(slot_) T_(hxforward<args_t_>(args_)...);
+	::new(slot_) T_(hxforward<ref_t_>(x_));
 }
 
 template<hxdeque_concept_ T_, hxsize_t capacity_>

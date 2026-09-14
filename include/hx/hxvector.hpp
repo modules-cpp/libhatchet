@@ -349,8 +349,9 @@ public:
 	/// Returns a pointer to a potentially uninitialized array of `T`.
 	using hxallocator<T_, capacity_>::data;
 
-	/// Emplaces an element at the end of the array using forwarded arguments.
-	/// Returns a reference to the new element. Exactly the same as `push_back`.
+	/// Constructs an element in place at the end of the array using forwarded
+	/// arguments. `args_t` may be any types that can be used to construct `T`.
+	/// Returns a reference to the new element.
 	/// - `args` : Arguments forwarded to `T`'s constructor.
 	template<typename... args_t_>
 	T_& emplace_back(args_t_&&... args_) noexcept;
@@ -527,12 +528,11 @@ public:
 	/// See `push_heap`.
 	void pop_heap(void) noexcept;
 
-	/// Appends an element to the end of the array. `args_t` may be any types
-	/// that can be used to construct `T`. Returns a reference to the new
-	/// element. Exactly the same as `emplace_back`.
-	/// - `args` : Arguments forwarded to `T`'s constructor.
-	template<typename... args_t_>
-	T_& push_back(args_t_&&... args_) noexcept;
+	/// Appends `x` to the end of the array. Returns a reference to the new
+	/// element. Use `emplace_back` to construct the new element in place.
+	/// - `x` : The element to add.
+	template<typename ref_t_>
+	T_& push_back(ref_t_&& x_) noexcept;
 
 	/// Inserts an element into a max-heap. This implements `std::push_heap` and
 	/// `std::priority_queue` using `hxkey_less` for ordering. See `pop_heap`.

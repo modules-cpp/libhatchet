@@ -235,13 +235,13 @@ public:
 	void clear(void) noexcept;
 
 	/// Constructs an element in place at the back using forwarded arguments.
-	/// Exactly the same as `push_back`.
+	/// `args_t` may be any types that can be used to construct `T`.
 	/// - `args` : Arguments forwarded to `T`'s constructor.
 	template<typename... args_t_>
 	void emplace_back(args_t_&&... args_) noexcept;
 
 	/// Constructs an element in place at the front using forwarded arguments.
-	/// Exactly the same as `push_front`.
+	/// `args_t` may be any types that can be used to construct `T`.
 	/// - `args` : Arguments forwarded to `T`'s constructor.
 	template<typename... args_t_>
 	void emplace_front(args_t_&&... args_) noexcept;
@@ -278,17 +278,17 @@ public:
 	/// Removes and destroys the front element. The deque must not be empty.
 	void pop_front(void) noexcept;
 
-	/// Appends an element at the back using forwarded arguments. Exactly the
-	/// same as `emplace_back`.
-	/// - `args` : Arguments forwarded to `T`'s constructor.
-	template<typename... args_t_>
-	void push_back(args_t_&&... args_) noexcept;
+	/// Appends `x` at the back. Use `emplace_back` to construct the new
+	/// element in place.
+	/// - `x` : The element to add.
+	template<typename ref_t_>
+	void push_back(ref_t_&& x_) noexcept;
 
-	/// Prepends an element at the front using forwarded arguments. Exactly the
-	/// same as `emplace_front`.
-	/// - `args` : Arguments forwarded to `T`'s constructor.
-	template<typename... args_t_>
-	void push_front(args_t_&&... args_) noexcept;
+	/// Prepends `x` at the front. Use `emplace_front` to construct the new
+	/// element in place.
+	/// - `x` : The element to add.
+	template<typename ref_t_>
+	void push_front(ref_t_&& x_) noexcept;
 
 	/// Allocates storage for a dynamic deque. May only be called once and only
 	/// when the deque has no storage. `size` must be a power of two.
