@@ -41,18 +41,16 @@ void test_sort_cases(const sort_callback_t& sort_callback) {
 	expect_values(expected_sorted);
 }
 
-void test_partition_sort_case(const int (&initial_values)[hxdetail_::hxinsertion_sort_cutoff_ + 1],
-		const int (&expected_sorted)[hxdetail_::hxinsertion_sort_cutoff_ + 1]) {
-	const hxsize_t count = hxdetail_::hxinsertion_sort_cutoff_ + hxsize_t{1};
-	hxvector<hxtest_object, hxdetail_::hxinsertion_sort_cutoff_ + 1> values(initial_values);
+void test_partition_sort_case(const int (&initial_values)[11], const int (&expected_sorted)[11]) {
+	hxvector<hxtest_object, 11> values(initial_values);
 	hxsort(values.begin(), values.end());
-	for(hxsize_t i = 0; i < count; ++i) {
+	for(hxsize_t i = 0; i < 11; ++i) {
 		EXPECT_EQ(values[i].value(), expected_sorted[i]);
 	}
-	hxvector<hxtest_object, hxdetail_::hxinsertion_sort_cutoff_ + 1> iterator_values(initial_values);
+	hxvector<hxtest_object, 11> iterator_values(initial_values);
 	hxsort(hxtest_rand_iterator_api_t(iterator_values.data()),
-		hxtest_rand_iterator_api_t(iterator_values.data() + count), hxtest_value_less);
-	for(hxsize_t i = 0; i < count; ++i) {
+		hxtest_rand_iterator_api_t(iterator_values.data() + 11), hxtest_value_less);
+	for(hxsize_t i = 0; i < 11; ++i) {
 		EXPECT_EQ(iterator_values[i].value(), expected_sorted[i]);
 	}
 }
@@ -129,21 +127,19 @@ TEST_F(hxsort_test_f, sort_grinder_values_match_with_duplicate_keys) {
 	EXPECT_TRUE(check_stats(1428, 1428, 0, 405, 0, 1023, 0, 4473, 0, 4938, 0));
 }
 
-TEST_F(hxsort_test_f, intro_sort_depth_limit_falls_back_to_heapsort) {
-	const hxsize_t count = hxdetail_::hxheapsort_cutoff_ + hxsize_t{1};
+TEST_F(hxsort_test_f, intro_sort_pivot_killer_reaches_depth_limit_and_heapsorts) {
+	const int initial_values[69] = {
+		8, 35, 46, 44, 61, 12, 59, 65, 28, 37, 16, 58, 24, 45, 0, 20, 39, 4, 29, 41, 60, 43, 25,
+		64, 1, 48, 55, 5, 56, 42, 51, 54, 9, 49, 2, 13, 47, 6, 50, 17, 10, 52, 21, 14, 57, 40, 18,
+		66, 32, 22, 68, 36, 26, 33, 3, 30, 11, 7, 34, 15, 19, 38, 67, 23, 27, 63, 62, 31, 53 };
 	{
-		hxrandom rng(31u);
-		hxvector<hxtest_object> values; values.reserve(count);
-		values.generate_n(count, [&rng]() {
-			return hxtest_object(static_cast<int32_t>(rng.range(int64_t{0}, int64_t{1000})));
-		});
-		hxdetail_::hxintro_sort_<hxtest_object*>(values.begin(), values.end(),
-			hxkey_less_t<hxtest_object&>{}, 0);
-		for(hxsize_t i = 1; i < count; ++i) {
-			EXPECT_FALSE(values[i] < values[i - hxsize_t{1}]);
+		hxvector<hxtest_object, 69> values(initial_values);
+		hxsort(values.begin(), values.end());
+		for(hxsize_t i = 0; i < 69; ++i) {
+			EXPECT_EQ(values[i].value(), static_cast<int32_t>(i));
 		}
 	}
-	EXPECT_TRUE(check_stats(51, 51, 0, 21, 0, 30, 0, 112, 0, 148, 0));
+	EXPECT_TRUE(check_stats(639, 639, 0, 69, 0, 570, 0, 1197, 0, 1299, 0));
 }
 
 TEST_F(hxsort_test_f, sort_all_equal_skips_middle_partition) {
@@ -223,7 +219,7 @@ TEST_F(hxsort_test_f, partition_sort_all_equal_takes_no_pivot_swaps) {
 }
 
 TEST_F(hxsort_test_f, partition_sort_function_pointer_comparator_distinct_and_equal) {
-	const hxsize_t count = hxdetail_::hxinsertion_sort_cutoff_ + hxsize_t{1};
+	const hxsize_t count = 11;
 	{
 		hxvector<hxtest_object> values; values.reserve(count);
 		hxsize_t index = count;
@@ -270,23 +266,26 @@ TEST_F(hxsort_test_f, sort_thousand_random_vectors_stays_within_work_budget) {
 }
 
 TEST_F(hxsort_test_f, heapsort_above_cutoff_builds_heap_and_drains) {
-	const hxsize_t count = hxdetail_::hxheapsort_cutoff_ + hxsize_t{1};
+	const hxsize_t count = 21;
 	{
 		hxrandom rng(31u);
 		hxvector<hxtest_object> values; values.reserve(count);
 		values.generate_n(count, [&rng]() {
 			return hxtest_object(static_cast<int32_t>(rng.range(int64_t{0}, int64_t{1000})));
 		});
+		hxvector<hxtest_object> less_values(values);
 		hxheapsort(values.begin(), values.end());
+		hxheapsort(less_values.begin(), less_values.end(), hxtest_value_less);
 		for(hxsize_t i = 1; i < count; ++i) {
 			EXPECT_FALSE(values[i] < values[i - hxsize_t{1}]);
+			EXPECT_FALSE(less_values[i] < less_values[i - hxsize_t{1}]);
 		}
 	}
-	EXPECT_TRUE(check_stats(51, 51, 0, 21, 0, 30, 0, 112, 0, 148, 0));
+	EXPECT_TRUE(check_stats(102, 102, 0, 21, 21, 60, 0, 224, 0, 296, 0));
 }
 
 TEST_F(hxsort_test_f, intro_sort_cutoff_boundary_at_cutoff_uses_insertion_sort) {
-	const hxsize_t count = hxdetail_::hxinsertion_sort_cutoff_;
+	const hxsize_t count = 10;
 	{
 		hxvector<hxtest_object> values; values.reserve(count);
 		hxsize_t index = count;
@@ -300,7 +299,7 @@ TEST_F(hxsort_test_f, intro_sort_cutoff_boundary_at_cutoff_uses_insertion_sort) 
 }
 
 TEST_F(hxsort_test_f, intro_sort_cutoff_boundary_past_cutoff_uses_partition_sort) {
-	const hxsize_t count = hxdetail_::hxinsertion_sort_cutoff_ + hxsize_t{1};
+	const hxsize_t count = 11;
 	{
 		hxvector<hxtest_object> values; values.reserve(count);
 		hxsize_t index = count;

@@ -1065,11 +1065,11 @@ TEST_F(hxflat_map_test_f, add_range_is_sorted_false_falls_back_to_sorting) {
 }
 
 TEST_F(hxflat_map_test_f, add_range_is_sorted_false_above_cutoff_uses_partition_sort) {
-	const hxsize_t count = hxdetail_::hxinsertion_sort_cutoff_ + hxsize_t{1};
+	const hxsize_t count = 11;
 	{
 		hxrandom rng(31u);
-		hxflat_map<hxtest_object, int, hxdetail_::hxinsertion_sort_cutoff_ + hxsize_t{1}> m;
-		hxvector<hxpair<hxtest_object, int>, hxdetail_::hxinsertion_sort_cutoff_ + hxsize_t{1}> range;
+		hxflat_map<hxtest_object, int, 11> m;
+		hxvector<hxpair<hxtest_object, int>, 11> range;
 		int32_t next_key = 0;
 		range.generate_n(count, [&next_key]() {
 			const int32_t v = next_key++;
