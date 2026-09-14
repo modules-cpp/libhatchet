@@ -206,13 +206,14 @@ hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_
 	mapped_t_* hxrestrict v_ = m_values_.data();
 	hxsize_t size_ = m_size_;
 	for(; it_ != end_; ++it_, ++size_) {
-		hxassertf(size_ < m_keys_.capacity(), "hxflat_map full %zd", m_keys_.capacity());
+		hxassertf(size_ < m_keys_.capacity(), "bad_alloc already sized %zd", m_keys_.capacity());
 		::new(k_ + size_) key_t_(hxforward_like<range_t_>((*it_).a));
 		::new(v_ + size_) mapped_t_(hxforward_like<range_t_>((*it_).b));
 	}
-	hxassert_hard(size_ <= m_keys_.capacity(), "hxflat_map full %zd", m_keys_.capacity());
+	hxassert_hard(size_ <= m_keys_.capacity(), "bad_alloc already sized %zd", m_keys_.capacity());
 	m_size_ = size_;
 	if(!is_sorted_) {
+		// Assume this gets optimized out when not used.
 		hxsort<sort_iterator_>(sort_iterator_(k_, v_), sort_iterator_(k_ + size_, v_ + size_), hxkey_less_t<sort_value_>());
 	}
 }
@@ -505,7 +506,7 @@ template<typename key_u_, typename mapped_u_>
 hxattr_flatten auto hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::insert_at_(
 		hxsize_t index_, key_u_&& key_, mapped_u_&& mapped_) noexcept -> iterator {
 	const hxsize_t size_ = m_size_;
-	hxassert_hard(size_ < m_keys_.capacity(), "hxflat_map full %zd", m_keys_.capacity());
+	hxassert_hard(size_ < m_keys_.capacity(), "bad_alloc already sized %zd", m_keys_.capacity());
 	key_t_* hxrestrict k_ = m_keys_.data();
 	mapped_t_* hxrestrict v_ = m_values_.data();
 	if(size_ > index_) {
