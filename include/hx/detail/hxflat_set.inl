@@ -36,10 +36,7 @@ hxinline hxattr_flatten hxflat_set<key_t_, capacity_, compare_t_, traits_>::hxfl
 		this->reserve_storage(static_cast<hxsize_t>(x_.size()));
 		m_end_ = this->data();
 	}
-	const key_t_* hxrestrict src_ = x_.begin();
-	for(const key_t_*const end_ = x_.end(); src_ != end_; ++src_) {
-		this->insert(*src_);
-	}
+	this->add_range(true, hxmake_range(x_.begin(), x_.end()));
 }
 
 template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
@@ -128,30 +125,57 @@ hxinline hxattr_flatten auto hxflat_set<key_t_, capacity_, compare_t_, traits_>:
 	return ptr_;
 }
 
+#if (HX_HARDENING_MODE) == HX_HARDENING_MODE_DEBUG
+template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
+hxinline hxattr_flatten bool hxflat_set<key_t_, capacity_, compare_t_, traits_>::correct_(
+		const key_t_* data_, const key_t_* original_end_, const key_t_* end_) noexcept {
+	if(original_end_ == end_) {
+		return true;
+	}
+	const compare_t comp_;
+	const key_t_* const first_checked_ = original_end_ > data_ ? original_end_ : data_ + 1;
+	for(const key_t_* pos_ = first_checked_; pos_ < end_; ++pos_) {
+		hxif_constexpr((traits_ & hxtrait_multi) == 0) {
+			if(!hxcompare_<(traits_ & hxtrait_three_way) != 0>::after(comp_, *pos_, *(pos_ - 1))) {
+				return false;
+			}
+		}
+		else {
+			if(hxcompare_<(traits_ & hxtrait_three_way) != 0>::before(comp_, *pos_, *(pos_ - 1))) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+#endif
+
 template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
 template<hxrange_concept_ range_t_>
 hxinline hxattr_flatten void hxflat_set<key_t_, capacity_, compare_t_, traits_>::add_range(range_t_&& range_) noexcept {
-	hxrestrict_t<decltype(range_.begin())> it_(range_.begin());
-	for(const auto end_ = range_.end(); it_ != end_; ++it_) {
-		this->insert(hxforward_like<range_t_>(*it_));
-	}
+	this->add_range(false, hxforward<range_t_>(range_));
 }
 
 template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
 template<hxrange_concept_ range_t_>
 hxinline hxattr_flatten void hxflat_set<key_t_, capacity_, compare_t_, traits_>::add_range(
-		bool is_sorted_, range_t_&& range_) noexcept {
+		bool is_correct_, range_t_&& range_) noexcept {
 	hxrestrict_t<decltype(range_.begin())> it_(range_.begin());
 	const auto end_ = range_.end();
-	key_t_* hxrestrict dst_ = m_end_;
+	key_t_* const original_end_ = m_end_;
+	key_t_* hxrestrict dst_ = original_end_;
 	for(; it_ != end_; ++it_, ++dst_) {
 		hxassertf(dst_ < this->data() + this->capacity(), "bad_alloc already sized %zd", this->capacity());
 		::new(dst_) key_t_(hxforward_like<range_t_>(*it_));
 	}
 	hxassert_hard(dst_ <= this->data() + this->capacity(), "bad_alloc already sized %zd", this->capacity());
-	if(!is_sorted_) {
+	if(!is_correct_) {
 		// Assume this gets optimized out when not used.
 		hxsort<key_t_*>(this->data(), dst_, hxkey_less_t<key_t_>());
+	}
+	else {
+		// Assume this gets optimized out when not used.
+		hxassertf(correct_(this->data(), original_end_, dst_), "bad_ordering %zd", original_end_ - this->data());
 	}
 	m_end_ = dst_;
 }
@@ -192,6 +216,14 @@ hxinline hxattr_flatten auto hxflat_set<key_t_, capacity_, compare_t_, traits_>:
 		args_t_&&... args_) noexcept -> const key_t_* {
 	key_t_ key_(hxforward<args_t_>(args_)...);
 	return this->insert(hxmove(key_));
+}
+
+template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
+template<typename... args_t_>
+hxinline hxattr_flatten auto hxflat_set<key_t_, capacity_, compare_t_, traits_>::emplace_back(
+		args_t_&&... args_) noexcept -> const key_t_* {
+	key_t_ key_(hxforward<args_t_>(args_)...);
+	return this->push_back(hxmove(key_));
 }
 
 template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
@@ -320,6 +352,28 @@ hxinline hxattr_flatten auto hxflat_set<key_t_, capacity_, compare_t_, traits_>:
 	return hxforward<callable_t_>(callable_)();
 }
 #endif // HX_CPLUSPLUS >= 202302L
+
+template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
+template<typename key_u_>
+hxinline hxattr_flatten auto hxflat_set<key_t_, capacity_, compare_t_, traits_>::push_back(
+		key_u_&& key_) noexcept -> const key_t_* {
+	key_t_* const end_ = m_end_;
+	const key_t_* const data_ = this->data();
+	const compare_t comp_;
+	bool ordered_after_;
+	hxif_constexpr((traits_ & hxtrait_multi) == 0) {
+		ordered_after_ = end_ == data_ ||
+			hxcompare_<(traits_ & hxtrait_three_way) != 0>::after(comp_, key_, *(end_ - 1));
+	}
+	else {
+		ordered_after_ = end_ == data_ ||
+			!hxcompare_<(traits_ & hxtrait_three_way) != 0>::before(comp_, key_, *(end_ - 1));
+	}
+	if(ordered_after_) {
+		return this->insert_at_(end_, hxforward<key_u_>(key_));
+	}
+	return this->insert(hxforward<key_u_>(key_));
+}
 
 template<hxflat_set_concept_ key_t_, hxsize_t capacity_, typename compare_t_, int traits_>
 hxinline hxattr_flatten void hxflat_set<key_t_, capacity_, compare_t_, traits_>::reserve(hxsize_t size_,

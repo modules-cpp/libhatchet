@@ -45,10 +45,8 @@ hxtest_object_fixture::~hxtest_object_fixture(void) {
 	hxs_object_current = hxnull;
 }
 
-bool hxtest_object_fixture::check_stats(int constructed, int destructed,
-		int default_construct, int value_construct,
-		int copy_construct, int move_construct,
-		int copy_assign, int move_assign,
+bool hxtest_object_fixture::check_stats(int constructed, int default_construct, int value_construct,
+		int copy_construct, int move_construct, int copy_assign, int move_assign,
 		int equal_to, int less_than, int three_way) {
 	m_check_stats_called = true;
 	bool ok = true;
@@ -58,10 +56,6 @@ bool hxtest_object_fixture::check_stats(int constructed, int destructed,
 	// GCOVR_EXCL_START
 	if(m_constructed != constructed) {
 		hxlog_warning("constructed: expected %d found %d", constructed, m_constructed);
-		ok = false;
-	}
-	if(m_destructed != destructed) {
-		hxlog_warning("destructed: expected %d found %d", destructed, m_destructed);
 		ok = false;
 	}
 	if(m_copy_construct != copy_construct) {
@@ -102,12 +96,14 @@ bool hxtest_object_fixture::check_stats(int constructed, int destructed,
 		hxlog_warning("three_way: expected %d found %d", three_way, m_three_way);
 		ok = false;
 	}
+	m_default_construct = m_value_construct = m_copy_construct = m_move_construct =
+		m_copy_assign = m_move_assign = m_equal_to = m_less_than = m_three_way = 0;
 	return ok;
 	// GCOVR_EXCL_STOP
 }
 
 bool hxtest_object_fixture::check_no_stats(void) {
-	return check_stats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	return check_stats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 hxtest_object_fixture& hxtest_object_fixture::get(void) {

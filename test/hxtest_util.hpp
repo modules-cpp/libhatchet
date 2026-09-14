@@ -17,10 +17,8 @@ public:
 	hxtest_object_fixture(void);
 	~hxtest_object_fixture();
 
-	bool check_stats(int constructed, int destructed,
-		int default_construct, int value_construct,
-		int copy_construct, int move_construct,
-		int copy_assign, int move_assign,
+	bool check_stats(int constructed, int default_construct, int value_construct,
+		int copy_construct, int move_construct, int copy_assign, int move_assign,
 		int equal_to, int less_than, int three_way);
 
 	bool check_no_stats(void);

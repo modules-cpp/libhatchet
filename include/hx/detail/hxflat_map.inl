@@ -78,10 +78,7 @@ hxinline hxattr_flatten hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, tra
 	hxif_constexpr(capacity_ == hxallocator_dynamic_capacity) {
 		this->reserve(static_cast<hxsize_t>(x_.size()));
 	}
-	const hxpair<key_t_, mapped_t_>* hxrestrict src_ = x_.begin();
-	for(const hxpair<key_t_, mapped_t_>*const end_ = x_.end(); src_ != end_; ++src_) {
-		this->insert(src_->a, src_->b);
-	}
+	this->add_range(true, hxmake_range(x_.begin(), x_.end()));
 }
 
 template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
@@ -186,25 +183,48 @@ hxinline hxattr_flatten auto hxflat_map<key_t_, mapped_t_, capacity_, compare_t_
 	return iterator(this, index_);
 }
 
+#if (HX_HARDENING_MODE) == HX_HARDENING_MODE_DEBUG
+template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
+hxinline hxattr_flatten bool hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::correct_(
+		const key_t_* k_, hxsize_t original_size_, hxsize_t size_) noexcept {
+	if(original_size_ == size_) {
+		return true;
+	}
+	const compare_t comp_;
+	const hxsize_t first_checked_ = original_size_ > hxsize_t{0} ? original_size_ : hxsize_t{1};
+	for(hxsize_t i_ = first_checked_; i_ < size_; ++i_) {
+		hxif_constexpr((traits_ & hxtrait_multi) == 0) {
+			if(!hxcompare_<(traits_ & hxtrait_three_way) != 0>::after(comp_, k_[i_], k_[i_ - hxsize_t{1}])) {
+				return false;
+			}
+		}
+		else {
+			if(hxcompare_<(traits_ & hxtrait_three_way) != 0>::before(comp_, k_[i_], k_[i_ - hxsize_t{1}])) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+#endif
+
 template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
 template<hxrange_concept_ range_t_>
 hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::add_range(
 		range_t_&& range_) noexcept {
-	hxrestrict_t<decltype(range_.begin())> it_(range_.begin());
-	for(const auto end_ = range_.end(); it_ != end_; ++it_) {
-		this->insert(hxforward_like<range_t_>((*it_).a), hxforward_like<range_t_>((*it_).b));
-	}
+	this->add_range(false, hxforward<range_t_>(range_));
 }
 
 template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
 template<hxrange_concept_ range_t_>
 hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::add_range(
-		bool is_sorted_, range_t_&& range_) noexcept {
+		bool is_correct_, range_t_&& range_) noexcept {
 	hxrestrict_t<decltype(range_.begin())> it_(range_.begin());
 	const auto end_ = range_.end();
 	key_t_* hxrestrict k_ = m_keys_.data();
 	mapped_t_* hxrestrict v_ = m_values_.data();
-	hxsize_t size_ = m_size_;
+	const hxsize_t original_size_ = m_size_;
+	hxsize_t size_ = original_size_;
 	for(; it_ != end_; ++it_, ++size_) {
 		hxassertf(size_ < m_keys_.capacity(), "bad_alloc already sized %zd", m_keys_.capacity());
 		::new(k_ + size_) key_t_(hxforward_like<range_t_>((*it_).a));
@@ -212,9 +232,13 @@ hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_
 	}
 	hxassert_hard(size_ <= m_keys_.capacity(), "bad_alloc already sized %zd", m_keys_.capacity());
 	m_size_ = size_;
-	if(!is_sorted_) {
+	if(!is_correct_) {
 		// Assume this gets optimized out when not used.
 		hxsort<sort_iterator_>(sort_iterator_(k_, v_), sort_iterator_(k_ + size_, v_ + size_), hxkey_less_t<sort_value_>());
+	}
+	else {
+		// Assume this gets optimized out when not used.
+		hxassertf(correct_(k_, original_size_, size_), "bad_ordering %zd", original_size_);
 	}
 }
 
@@ -270,6 +294,29 @@ hxinline hxattr_flatten auto hxflat_map<key_t_, mapped_t_, capacity_, compare_t_
 		mapped_t_ mapped_(hxforward<args_t_>(args_)...);
 		return this->insert_at_(index_, key_, hxmove(mapped_));
 	}
+}
+
+template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
+template<typename... args_t_>
+hxinline hxattr_flatten auto hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::emplace_back(
+		const key_t_& key_, args_t_&&... args_) noexcept -> iterator {
+	const hxsize_t size_ = m_size_;
+	const key_t_* const keys_ = m_keys_.data();
+	const compare_t comp_;
+	bool ordered_after_;
+	hxif_constexpr((traits_ & hxtrait_multi) == 0) {
+		ordered_after_ = size_ == 0 ||
+			hxcompare_<(traits_ & hxtrait_three_way) != 0>::after(comp_, key_, keys_[size_ - 1]);
+	}
+	else {
+		ordered_after_ = size_ == 0 ||
+			!hxcompare_<(traits_ & hxtrait_three_way) != 0>::before(comp_, key_, keys_[size_ - 1]);
+	}
+	mapped_t_ mapped_(hxforward<args_t_>(args_)...);
+	if(ordered_after_) {
+		return this->insert_at_(size_, key_, hxmove(mapped_));
+	}
+	return this->insert(key_, hxmove(mapped_));
 }
 
 template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
@@ -432,6 +479,28 @@ hxinline hxattr_flatten auto hxflat_map<key_t_, mapped_t_, capacity_, compare_t_
 	return hxforward<callable_t_>(callable_)();
 }
 #endif // HX_CPLUSPLUS >= 202302L
+
+template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
+template<typename key_u_, typename mapped_u_>
+hxinline hxattr_flatten auto hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::push_back(
+		key_u_&& key_, mapped_u_&& mapped_) noexcept -> iterator {
+	const hxsize_t size_ = m_size_;
+	const key_t_* const keys_ = m_keys_.data();
+	const compare_t comp_;
+	bool ordered_after_;
+	hxif_constexpr((traits_ & hxtrait_multi) == 0) {
+		ordered_after_ = size_ == 0 ||
+			hxcompare_<(traits_ & hxtrait_three_way) != 0>::after(comp_, key_, keys_[size_ - 1]);
+	}
+	else {
+		ordered_after_ = size_ == 0 ||
+			!hxcompare_<(traits_ & hxtrait_three_way) != 0>::before(comp_, key_, keys_[size_ - 1]);
+	}
+	if(ordered_after_) {
+		return this->insert_at_(size_, hxforward<key_u_>(key_), hxforward<mapped_u_>(mapped_));
+	}
+	return this->insert(hxforward<key_u_>(key_), hxforward<mapped_u_>(mapped_));
+}
 
 template<hxflat_map_concept_ key_t_, hxflat_map_concept_ mapped_t_, hxsize_t capacity_, typename compare_t_, int traits_>
 hxinline hxattr_flatten void hxflat_map<key_t_, mapped_t_, capacity_, compare_t_, traits_>::reserve(hxsize_t size_,

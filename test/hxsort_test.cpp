@@ -64,7 +64,7 @@ TEST_F(hxsort_test_f, sort_cases) {
 		hxheapsort<hxtest_object*, bool (*)(const hxtest_object&, const hxtest_object&)>);
 	test_sort_cases<hxtest_object*>(
 		hxsort<hxtest_object*, bool (*)(const hxtest_object&, const hxtest_object&)>);
-	EXPECT_TRUE(check_stats(48, 48, 0, 15, 0, 33, 0, 114, 0, 87, 0));
+	EXPECT_TRUE(check_stats(48, 0, 15, 0, 33, 0, 114, 0, 87, 0));
 }
 
 TEST_F(hxsort_test_f, sort_grinder) {
@@ -95,7 +95,7 @@ TEST_F(hxsort_test_f, sort_grinder) {
 		heap_sorted.clear();
 		generic_sorted.clear();
 	}
-	EXPECT_TRUE(check_stats(1698, 1698, 0, 675, 0, 1023, 0, 4743, 270, 4938, 0));
+	EXPECT_TRUE(check_stats(1698, 0, 675, 0, 1023, 0, 4743, 270, 4938, 0));
 }
 
 TEST_F(hxsort_test_f, sort_grinder_values_match_with_duplicate_keys) {
@@ -124,7 +124,7 @@ TEST_F(hxsort_test_f, sort_grinder_values_match_with_duplicate_keys) {
 		heap_sorted.clear();
 		generic_sorted.clear();
 	}
-	EXPECT_TRUE(check_stats(1428, 1428, 0, 405, 0, 1023, 0, 4473, 0, 4938, 0));
+	EXPECT_TRUE(check_stats(1428, 0, 405, 0, 1023, 0, 4473, 0, 4938, 0));
 }
 
 TEST_F(hxsort_test_f, intro_sort_pivot_killer_reaches_depth_limit_and_heapsorts) {
@@ -139,7 +139,7 @@ TEST_F(hxsort_test_f, intro_sort_pivot_killer_reaches_depth_limit_and_heapsorts)
 			EXPECT_EQ(values[i].value(), static_cast<int32_t>(i));
 		}
 	}
-	EXPECT_TRUE(check_stats(639, 639, 0, 69, 0, 570, 0, 1197, 0, 1299, 0));
+	EXPECT_TRUE(check_stats(639, 0, 69, 0, 570, 0, 1197, 0, 1299, 0));
 }
 
 TEST_F(hxsort_test_f, sort_all_equal_skips_middle_partition) {
@@ -152,7 +152,7 @@ TEST_F(hxsort_test_f, sort_all_equal_skips_middle_partition) {
 			EXPECT_EQ(values[i].value(), 7);
 		}
 	}
-	EXPECT_TRUE(check_stats(2050, 2050, 0, 2048, 0, 2, 0, 4, 0, 4102, 0));
+	EXPECT_TRUE(check_stats(2050, 0, 2048, 0, 2, 0, 4, 0, 4102, 0));
 }
 
 TEST_F(hxsort_test_f, sort_grinder_generic) {
@@ -181,41 +181,41 @@ TEST_F(hxsort_test_f, sort_grinder_generic) {
 		}
 		sorted.clear();
 	}
-	EXPECT_TRUE(check_stats(18089, 18089, 0, 3208, 0, 14881, 0, 25762, 0, 38010, 0));
+	EXPECT_TRUE(check_stats(18089, 0, 3208, 0, 14881, 0, 25762, 0, 38010, 0));
 }
 
 TEST_F(hxsort_test_f, partition_sort_network_all_ascending_takes_no_swaps) {
 	const int initial_values[11] = { 1000, 10, 1002, 20, 1004, 30, 1006, 40, 1008, 50, 1010 };
 	const int expected_sorted[11] = { 10, 20, 30, 40, 50, 1000, 1002, 1004, 1006, 1008, 1010 };
 	test_partition_sort_case(initial_values, expected_sorted);
-	EXPECT_TRUE(check_stats(46, 46, 0, 22, 0, 24, 0, 66, 0, 86, 0));
+	EXPECT_TRUE(check_stats(46, 0, 22, 0, 24, 0, 66, 0, 86, 0));
 }
 
 TEST_F(hxsort_test_f, partition_sort_network_all_but_p3_p1_and_p3_p2_swap) {
 	const int initial_values[11] = { 1000, 50, 1002, 20, 1004, 30, 1006, 40, 1008, 10, 1010 };
 	const int expected_sorted[11] = { 10, 20, 30, 40, 50, 1000, 1002, 1004, 1006, 1008, 1010 };
 	test_partition_sort_case(initial_values, expected_sorted);
-	EXPECT_TRUE(check_stats(46, 46, 0, 22, 0, 24, 0, 68, 0, 88, 0));
+	EXPECT_TRUE(check_stats(46, 0, 22, 0, 24, 0, 68, 0, 88, 0));
 }
 
 TEST_F(hxsort_test_f, partition_sort_network_p3_p1_and_p3_p2_swap) {
 	const int initial_values[11] = { 1000, 10, 1002, 30, 1004, 40, 1006, 20, 1008, 50, 1010 };
 	const int expected_sorted[11] = { 10, 20, 30, 40, 50, 1000, 1002, 1004, 1006, 1008, 1010 };
 	test_partition_sort_case(initial_values, expected_sorted);
-	EXPECT_TRUE(check_stats(52, 52, 0, 22, 0, 30, 0, 80, 0, 88, 0));
+	EXPECT_TRUE(check_stats(52, 0, 22, 0, 30, 0, 80, 0, 88, 0));
 }
 
 TEST_F(hxsort_test_f, partition_sort_loop_lt_and_gt_swaps_taken_and_skipped) {
 	const int initial_values[11] = { 100, 101, 1, 103, 2, 105, 3, 107, 108, 109, 110 };
 	const int expected_sorted[11] = { 1, 2, 3, 100, 101, 103, 105, 107, 108, 109, 110 };
 	test_partition_sort_case(initial_values, expected_sorted);
-	EXPECT_TRUE(check_stats(40, 40, 0, 22, 0, 18, 0, 48, 0, 70, 0));
+	EXPECT_TRUE(check_stats(40, 0, 22, 0, 18, 0, 48, 0, 70, 0));
 }
 
 TEST_F(hxsort_test_f, partition_sort_all_equal_takes_no_pivot_swaps) {
 	const int all_equal[11] = { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 };
 	test_partition_sort_case(all_equal, all_equal);
-	EXPECT_TRUE(check_stats(26, 26, 0, 22, 0, 4, 0, 8, 0, 56, 0));
+	EXPECT_TRUE(check_stats(26, 0, 22, 0, 4, 0, 8, 0, 56, 0));
 }
 
 TEST_F(hxsort_test_f, partition_sort_function_pointer_comparator_distinct_and_equal) {
@@ -237,7 +237,7 @@ TEST_F(hxsort_test_f, partition_sort_function_pointer_comparator_distinct_and_eq
 			EXPECT_EQ(values[i].value(), 7);
 		}
 	}
-	EXPECT_TRUE(check_stats(30, 30, 0, 22, 0, 8, 0, 19, 0, 60, 0));
+	EXPECT_TRUE(check_stats(30, 0, 22, 0, 8, 0, 19, 0, 60, 0));
 }
 
 TEST_F(hxsort_test_f, sort_thousand_random_vectors_stays_within_work_budget) {
@@ -262,7 +262,7 @@ TEST_F(hxsort_test_f, sort_thousand_random_vectors_stays_within_work_budget) {
 	hxlog("sort_survey elements %zd less_than %d moves %d\n", elements,
 		m_less_than, m_move_assign + m_move_construct);
 	EXPECT_EQ(elements, hxsize_t{493537});
-	EXPECT_TRUE(check_stats(2176957, 2176957, 0, 493537, 0, 1683420, 0, 3742158, 0, 5266078, 0));
+	EXPECT_TRUE(check_stats(2176957, 0, 493537, 0, 1683420, 0, 3742158, 0, 5266078, 0));
 }
 
 TEST_F(hxsort_test_f, heapsort_above_cutoff_builds_heap_and_drains) {
@@ -281,7 +281,7 @@ TEST_F(hxsort_test_f, heapsort_above_cutoff_builds_heap_and_drains) {
 			EXPECT_FALSE(less_values[i] < less_values[i - hxsize_t{1}]);
 		}
 	}
-	EXPECT_TRUE(check_stats(102, 102, 0, 21, 21, 60, 0, 224, 0, 296, 0));
+	EXPECT_TRUE(check_stats(102, 0, 21, 21, 60, 0, 224, 0, 296, 0));
 }
 
 TEST_F(hxsort_test_f, intro_sort_cutoff_boundary_at_cutoff_uses_insertion_sort) {
@@ -295,7 +295,7 @@ TEST_F(hxsort_test_f, intro_sort_cutoff_boundary_at_cutoff_uses_insertion_sort) 
 			EXPECT_EQ(values[i].value(), static_cast<int32_t>(i));
 		}
 	}
-	EXPECT_TRUE(check_stats(19, 19, 0, 10, 0, 9, 0, 54, 0, 45, 0));
+	EXPECT_TRUE(check_stats(19, 0, 10, 0, 9, 0, 54, 0, 45, 0));
 }
 
 TEST_F(hxsort_test_f, intro_sort_cutoff_boundary_past_cutoff_uses_partition_sort) {
@@ -309,7 +309,7 @@ TEST_F(hxsort_test_f, intro_sort_cutoff_boundary_past_cutoff_uses_partition_sort
 			EXPECT_EQ(values[i].value(), static_cast<int32_t>(i));
 		}
 	}
-	EXPECT_TRUE(check_stats(17, 17, 0, 11, 0, 6, 0, 15, 0, 32, 0));
+	EXPECT_TRUE(check_stats(17, 0, 11, 0, 6, 0, 15, 0, 32, 0));
 }
 
 TEST_F(hxsort_test_f, insertion_sort_two_elements_reversed) {
@@ -319,7 +319,7 @@ TEST_F(hxsort_test_f, insertion_sort_two_elements_reversed) {
 		EXPECT_EQ(values[0].value(), 1);
 		EXPECT_EQ(values[1].value(), 2);
 	}
-	EXPECT_TRUE(check_stats(3, 3, 0, 2, 0, 1, 0, 2, 0, 1, 0));
+	EXPECT_TRUE(check_stats(3, 0, 2, 0, 1, 0, 2, 0, 1, 0));
 }
 
 TEST_F(hxsort_test_f, insertion_sort_three_elements_descending) {
@@ -330,7 +330,7 @@ TEST_F(hxsort_test_f, insertion_sort_three_elements_descending) {
 		EXPECT_EQ(values[1].value(), 2);
 		EXPECT_EQ(values[2].value(), 3);
 	}
-	EXPECT_TRUE(check_stats(5, 5, 0, 3, 0, 2, 0, 5, 0, 3, 0));
+	EXPECT_TRUE(check_stats(5, 0, 3, 0, 2, 0, 5, 0, 3, 0));
 }
 
 TEST_F(hxsort_test_f, insertion_sort_preserves_stable_ordering_of_equal_keys) {
@@ -342,7 +342,7 @@ TEST_F(hxsort_test_f, insertion_sort_preserves_stable_ordering_of_equal_keys) {
 		EXPECT_EQ(values[i].value(), expected_value[i]);
 		EXPECT_EQ(values[i].ticket(), expected_ticket[i]);
 	}
-	EXPECT_TRUE(check_stats(9, 3, 0, 6, 0, 3, 0, 11, 0, 11, 0));
+	EXPECT_TRUE(check_stats(9, 0, 6, 0, 3, 0, 11, 0, 11, 0));
 }
 
 TEST_F(hxsort_test_f, iterator_support) {
@@ -358,7 +358,7 @@ TEST_F(hxsort_test_f, iterator_support) {
 			hxtest_rand_iterator_api_t end, const auto& less) {
 		hxsort(begin, end, less);
 	});
-	EXPECT_TRUE(check_stats(48, 48, 0, 15, 0, 33, 0, 114, 0, 87, 0));
+	EXPECT_TRUE(check_stats(48, 0, 15, 0, 33, 0, 114, 0, 87, 0));
 }
 
 TEST_F(hxsort_test_f, iterator_api_types) {
@@ -369,7 +369,7 @@ TEST_F(hxsort_test_f, iterator_api_types) {
 		EXPECT_TRUE(hxtest_check_rand_iterator_api(
 			hxtest_rand_iterator_api_t(values.data()), hxtest_rand_iterator_api_t(values.data() + 2)));
 	}
-	EXPECT_TRUE(check_stats(2, 2, 0, 2, 0, 0, 0, 0, 2, 0, 0));
+	EXPECT_TRUE(check_stats(2, 0, 2, 0, 0, 0, 0, 2, 0, 0));
 }
 #endif // HX_CPLUSPLUS >= 201402L
 #if HX_CPLUSPLUS >= 202302L

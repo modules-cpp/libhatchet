@@ -67,9 +67,7 @@ void hxprofiler_internal_::log_(void) {
 }
 
 #if HX_USE_FILE_IO
-// ###
-// ### WARNING: Only https://ui.perfetto.dev/ is working at the moment.
-// ###
+// https://ui.perfetto.dev/
 void hxprofiler_internal_::write_to_chrome_tracing_(const char* filename) {
 #if HX_USE_THREADS
 	const hxunique_lock profiler_lock(hxg_profiler_.m_mutex_);
@@ -85,8 +83,6 @@ void hxprofiler_internal_::write_to_chrome_tracing_(const char* filename) {
 		for(hxsize_t i = 0; i < m_records.size(); ++i) {
 			const hxprofiler_record_& rec = m_records[i];
 
-			// Register wrapping can cause bad samples. Meanwhile Chrome has been
-			// updated to generate exceptions when any sample has end < begin.
 			if(rec.m_end_ < rec.m_begin_) { continue; } // GCOV_EXCL_LINE
 
 			if(!first) { f.print(",\n"); }

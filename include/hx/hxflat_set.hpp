@@ -101,9 +101,11 @@ public:
 	///   hxallocator_dynamic_capacity, compare_t, traits>`.
 	hxflat_set(hxflat_set&& x_) noexcept;
 
-	/// Constructs a set by inserting every key from `x` in order using
-	/// `insert`. Requires `x.size()` <= `capacity` when `capacity` is fixed.
-	/// - `x` : A `std::initializer_list<key_t>`.
+	/// Constructs a set by appending every key from `x` with `add_range`.
+	/// Requires `x` to be sorted and requires `x.size()` <= `capacity` when
+	/// `capacity` is fixed. Presort data that may be unordered, e.g. by
+	/// copying it into a `hxarray` and calling `sort`.
+	/// - `x` : A sorted `std::initializer_list<key_t>`.
 	hxflat_set(std::initializer_list<key_t_> x_) noexcept;
 
 	/// Destructs the set and destroys all keys.
@@ -184,21 +186,26 @@ public:
 		return hxless_range(a_, b_);
 	}
 
-	/// Inserts every key from a temporary range by moving each key with
-	/// `insert`. This overload enables moving the range keys into the set
-	/// when forwarding rvalues.
+	/// Appends every key from `range` to the end of the array and sorts the
+	/// array afterward. Equivalent to `add_range(false, range)`.
 	/// - `range` : The range to move keys from.
 	template<hxrange_concept_ range_t_>
 	void add_range(range_t_&& range_) noexcept;
 
-	/// Appends every key from a sorted range to the end of the array without
-	/// searching for an insertion point or shifting existing keys. Requires
-	/// every key in `range` to be ordered after the last key of the set and
-	/// requires `range` to be sorted. Otherwise sorts the array after appending.
-	/// - `is_sorted` : True when `range` is sorted and ordered after the set.
+	/// Appends every key from a range to the end of the array without
+	/// searching for an insertion point or shifting existing keys. When
+	/// `is_correct` is true, requires the appended keys to be sorted and
+	/// ordered after the last key of the set, and, when `traits &
+	/// hxtrait_multi` is unset, to contain no keys equal to the last key of
+	/// the set or to each other, asserting `bad_ordering` otherwise. When
+	/// `is_correct` is false the array is sorted after appending and equal
+	/// keys are not rejected.
+	/// - `is_correct` : True when `range` is sorted, ordered after the set,
+	///   and, unless `traits & hxtrait_multi` is set, free of keys equal to
+	///   the last key of the set or to each other.
 	/// - `range` : The range to move keys from.
 	template<hxrange_concept_ range_t_>
-	void add_range(bool is_sorted_, range_t_&& range_) noexcept;
+	void add_range(bool is_correct_, range_t_&& range_) noexcept;
 
 	/// Returns a const pointer to the first element.
 	const key_t_* begin(void) const { return this->data(); }
@@ -227,6 +234,14 @@ public:
 	/// - `args` : Arguments forwarded to the key constructor.
 	template<typename... args_t_>
 	const key_t_* emplace(args_t_&&... args_) noexcept;
+
+	/// Constructs a key from `args` and appends it when ordered after the
+	/// last key in the set, without searching for an insertion point or
+	/// shifting existing keys. Otherwise calls `insert`. Returns a const
+	/// pointer to the new or existing key.
+	/// - `args` : Arguments forwarded to the key constructor.
+	template<typename... args_t_>
+	const key_t_* emplace_back(args_t_&&... args_) noexcept;
 
 	/// Checks if the set contains no elements.
 	hxattr_nodiscard bool empty(void) const { return m_end_ == this->data(); }
@@ -298,6 +313,14 @@ public:
 		-> decltype(self_.end());
 #endif // HX_CPLUSPLUS >= 202302L
 
+	/// Appends `key` when it is ordered after the last key in the set,
+	/// without searching for an insertion point or shifting existing keys.
+	/// Otherwise calls `insert`. Returns a const pointer to the new or
+	/// existing key.
+	/// - `key` : The key to insert.
+	template<typename key_u_>
+	const key_t_* push_back(key_u_&& key_) noexcept;
+
 	/// Allocates storage for `cap` keys. When `capacity` is fixed, `cap` must
 	/// equal `capacity`. Reallocation is not allowed.
 	/// - `cap` : The number of elements to allocate storage for.
@@ -341,6 +364,13 @@ public:
 private:
 	/// \cond HIDDEN
 	template<hxflat_set_concept_, hxsize_t, typename, int> friend class hxflat_set;
+
+#if (HX_HARDENING_MODE) == HX_HARDENING_MODE_DEBUG
+	// Returns true if keys [original_end, end) are sorted, ordered after
+	// key[-1] of original_end when original_end is not the first key, and,
+	// unless traits & hxtrait_multi is set, contain no adjacent equal keys.
+	static bool correct_(const key_t_* data_, const key_t_* original_end_, const key_t_* end_) noexcept;
+#endif
 
 	template<typename key_u_>
 	const key_t_* insert_at_(key_t_* it_, key_u_&& key_) noexcept;

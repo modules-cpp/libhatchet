@@ -279,10 +279,11 @@ public:
 	///   hxallocator_dynamic_capacity, compare_t, traits>`.
 	hxflat_map(hxflat_map&& x_) noexcept;
 
-	/// Constructs a map by inserting every key-value pair from `x` in order
-	/// using `insert`. Requires `x.size()` <= `capacity` when `capacity` is
-	/// fixed.
-	/// - `x` : A `std::initializer_list<hxpair<key_t, mapped_t>>`.
+	/// Constructs a map by appending every key-value pair from `x` with
+	/// `add_range`. Requires `x` to be sorted by key and requires `x.size()`
+	/// <= `capacity` when `capacity` is fixed. Presort data that may be
+	/// unordered, e.g. by copying it into a `hxarray` and calling `sort`.
+	/// - `x` : A sorted `std::initializer_list<hxpair<key_t, mapped_t>>`.
 	hxflat_map(std::initializer_list<hxpair<key_t_, mapped_t_> > x_) noexcept;
 
 	/// Destructs the map and destroys all key-value pairs.
@@ -367,21 +368,26 @@ public:
 		return hxless_range(a_, b_);
 	}
 
-	/// Inserts every key-value pair from a range with `insert`, forwarding the
-	/// `a` and `b` fields of each element into storage.
+	/// Appends every key-value pair from `range` to the end of the arrays and
+	/// sorts the arrays afterward. Equivalent to `add_range(false, range)`.
 	/// - `range` : The range to move key-value pairs from.
 	template<hxrange_concept_ range_t_>
 	void add_range(range_t_&& range_) noexcept;
 
-	/// Appends every key-value pair from a sorted range to the end of the
-	/// arrays without searching for an insertion point or shifting existing
-	/// pairs. Requires the first key in `range` to be ordered after the last key of
-	/// the map and requires `range` to be sorted. Otherwise sorts the arrays
-	/// after appending.
-	/// - `is_sorted` : True when `range` is sorted and ordered after the map.
+	/// Appends every key-value pair from a range to the end of the arrays
+	/// without searching for an insertion point or shifting existing pairs.
+	/// When `is_correct` is true, requires the appended keys to be sorted and
+	/// ordered after the last key of the map, and, when `traits &
+	/// hxtrait_multi` is unset, to contain no keys equal to the last key of
+	/// the map or to each other, asserting `bad_ordering` otherwise. When
+	/// `is_correct` is false the arrays are sorted after appending and
+	/// equal keys are not rejected.
+	/// - `is_correct` : True when `range` is sorted, ordered after the map,
+	///   and, unless `traits & hxtrait_multi` is set, free of keys equal to
+	///   the last key of the map or to each other.
 	/// - `range` : The range to move key-value pairs from.
 	template<hxrange_concept_ range_t_>
-	void add_range(bool is_sorted_, range_t_&& range_) noexcept;
+	void add_range(bool is_correct_, range_t_&& range_) noexcept;
 
 	/// Returns a const iterator pointing to the first element.
 	const_iterator begin(void) const { return const_iterator(this, 0); }
@@ -412,6 +418,15 @@ public:
 	/// - `args` : Arguments forwarded to the mapped value constructor.
 	template<typename... args_t_>
 	iterator emplace(const key_t_& key_, args_t_&&... args_) noexcept;
+
+	/// Constructs a mapped value from `args` and appends it with `key` when
+	/// `key` is ordered after the last key in the map, without searching for
+	/// an insertion point or shifting existing pairs. Otherwise calls
+	/// `insert`. Returns an iterator to the new or existing element.
+	/// - `key` : The key of the new element.
+	/// - `args` : Arguments forwarded to the mapped value constructor.
+	template<typename... args_t_>
+	iterator emplace_back(const key_t_& key_, args_t_&&... args_) noexcept;
 
 	/// Checks if the map contains no elements.
 	hxattr_nodiscard bool empty(void) const { return m_size_ == 0; }
@@ -489,6 +504,15 @@ public:
 		this self_t_&& self_, const_iterator it_, callable_t_&& callable_)
 		-> decltype(self_.end());
 #endif // HX_CPLUSPLUS >= 202302L
+
+	/// Appends a key-value pair when `key` is ordered after the last key in
+	/// the map, without searching for an insertion point or shifting existing
+	/// pairs. Otherwise calls `insert`. Both arguments are forwarded into
+	/// storage. Returns an iterator to the new or existing element.
+	/// - `key` : The key of the new element.
+	/// - `value` : The mapped value of the new element.
+	template<typename key_u_, typename mapped_u_>
+	iterator push_back(key_u_&& key_, mapped_u_&& mapped_) noexcept;
 
 	/// Allocates storage for `cap` keys and values. When `capacity` is fixed,
 	/// `cap` must equal `capacity`. Reallocation is not allowed.
@@ -608,6 +632,13 @@ private:
 		key_t_* m_key_;
 		mapped_t_* m_mapped_;
 	};
+
+#if (HX_HARDENING_MODE) == HX_HARDENING_MODE_DEBUG
+	// Returns true if keys [original_size, size) are sorted, ordered after
+	// key [original_size - 1] when original_size is nonzero, and, unless
+	// traits & hxtrait_multi is set, contain no adjacent equal keys.
+	static bool correct_(const key_t_* k_, hxsize_t original_size_, hxsize_t size_) noexcept;
+#endif
 
 	template<typename key_u_, typename mapped_u_>
 	iterator insert_at_(hxsize_t index_, key_u_&& key_, mapped_u_&& mapped_) noexcept;

@@ -88,7 +88,7 @@ HX_NS_END_
 
 #if HX_USE_FILE_IO
 /// `hxprofiler_write_to_chrome_tracing(const char* filename)` - Stops sampling
-/// and writes samples to the provided file in JSON format compatible with
+/// and writes Chrome Trace Event JSON which is viewable at
 /// https://ui.perfetto.dev/. Compiles to a NOP when not in use.
 /// - `filename` : Path to the output `.json` file.
 #define hxprofiler_write_to_chrome_tracing(filename_) \

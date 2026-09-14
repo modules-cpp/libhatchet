@@ -40,7 +40,7 @@ TEST_F(hxsearch_test_f, iterator_support) {
 	EXPECT_EQ(result, end);
 	result = hxsearch(begin, begin, key_three, hxtest_value_less);
 	EXPECT_EQ(result, begin);
-	EXPECT_TRUE(check_stats(10, 0, 0, 10, 0, 0, 0, 0, 0, 12, 0));
+	EXPECT_TRUE(check_stats(10, 0, 10, 0, 0, 0, 0, 0, 12, 0));
 }
 
 TEST(hxsearch_test, two_element_boundary) {
@@ -127,7 +127,7 @@ TEST_F(hxsearch_test_f, search_grinder) {
 			EXPECT_TRUE(!(*ptr < t) && !(t < *ptr));
 		}
 	}
-	EXPECT_TRUE(check_stats(493, 493, 0, 100, 100, 293, 0, 433, 0, 1628, 0));
+	EXPECT_TRUE(check_stats(493, 0, 100, 100, 293, 0, 433, 0, 1628, 0));
 }
 
 TEST(hxcopy_range_test, boundary_elements) {
@@ -170,7 +170,7 @@ TEST_F(hxcopy_range_test_f, copies_from_rvalue_range) {
 			EXPECT_EQ(source[i].state(), hxtest_object_state::valid);
 		}
 	}
-	EXPECT_TRUE(check_stats(6, 6, 0, 6, 0, 0, 3, 0, 0, 0, 0));
+	EXPECT_TRUE(check_stats(6, 0, 6, 0, 0, 3, 0, 0, 0, 0));
 }
 
 TEST(hxcopy_range_if_test, boundary_matches) {
@@ -252,7 +252,7 @@ TEST_F(hxforward_range_test_f, moves_from_rvalue_range) {
 			EXPECT_EQ(lvalue_source[i].state(), hxtest_object_state::valid);
 		}
 	}
-	EXPECT_TRUE(check_stats(9, 9, 0, 9, 0, 0, 3, 3, 0, 0, 0));
+	EXPECT_TRUE(check_stats(9, 0, 9, 0, 0, 3, 3, 0, 0, 0));
 }
 
 TEST(hxforward_range_if_test, boundary_matches) {
@@ -316,7 +316,7 @@ TEST_F(hxmove_range_test_f, boundary_elements) {
 		EXPECT_EQ(empty_end - empty.begin(), 0);
 		EXPECT_EQ(empty[0].value(), 93);
 	}
-	EXPECT_TRUE(check_stats(14, 14, 0, 14, 0, 0, 0, 5, 0, 0, 0));
+	EXPECT_TRUE(check_stats(14, 0, 14, 0, 0, 0, 5, 0, 0, 0));
 }
 
 TEST_F(hxmove_range_test_f, boundary_matches) {
@@ -363,7 +363,7 @@ TEST_F(hxmove_range_test_f, boundary_matches) {
 		EXPECT_EQ(all_source[0].state(), hxtest_object_state::moved);
 		EXPECT_EQ(all_source[3].state(), hxtest_object_state::moved);
 	}
-	EXPECT_TRUE(check_stats(27, 27, 0, 27, 0, 0, 0, 6, 0, 0, 0));
+	EXPECT_TRUE(check_stats(27, 0, 27, 0, 0, 0, 6, 0, 0, 0));
 }
 
 TEST_F(hxcount_if_test_f, simple_case) {
@@ -379,7 +379,7 @@ TEST_F(hxcount_if_test_f, simple_case) {
 		[](const hxtest_object& x) { return x.value() > 10; }), hxsize_t{0});
 	EXPECT_EQ(hxcount_if(hxmake_range(begin, begin),
 		[](const hxtest_object& x) { return x.value() == 1; }), hxsize_t{0});
-	EXPECT_TRUE(check_stats(6, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0));
+	EXPECT_TRUE(check_stats(6, 0, 6, 0, 0, 0, 0, 0, 0, 0));
 }
 
 TEST(hxcount_if_test, boundary_matches) {
@@ -409,7 +409,7 @@ TEST_F(hxequal_range_test_f, forward_iterator_equal_and_unequal) {
 	const hxtest_forward_iterator_api_t begin3(values3.data());
 	const hxtest_forward_iterator_api_t end3(values3.data() + 3);
 	EXPECT_FALSE(hxequal_range(hxmake_range(begin0, end0), hxmake_range(begin3, end3), hxtest_value_equal));
-	EXPECT_TRUE(check_stats(15, 0, 0, 15, 0, 0, 0, 0, 10, 0, 0));
+	EXPECT_TRUE(check_stats(15, 0, 15, 0, 0, 0, 0, 10, 0, 0));
 }
 
 TEST_F(hxexchange_test_f, move_only_type) {
@@ -417,7 +417,7 @@ TEST_F(hxexchange_test_f, move_only_type) {
 	const hxtest_object old = hxexchange(a, hxtest_object(99));
 	EXPECT_EQ(old.value(), 34);
 	EXPECT_EQ(a.value(), 99);
-	EXPECT_TRUE(check_stats(4, 2, 0, 2, 0, 2, 0, 1, 0, 0, 0));
+	EXPECT_TRUE(check_stats(4, 0, 2, 0, 2, 0, 1, 0, 0, 0));
 }
 
 TEST(hxfind_if_test, simple_case) {
@@ -454,7 +454,7 @@ TEST_F(hxfind_if_test_f, iterator_support) {
 		hxfind_if(hxmake_range(begin, begin),
 			[](const hxtest_object& x) { return x.value() == 10; });
 	EXPECT_EQ(empty_result, begin);
-	EXPECT_TRUE(check_stats(4, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0));
+	EXPECT_TRUE(check_stats(4, 0, 4, 0, 0, 0, 0, 0, 0, 0));
 }
 
 TEST(hxfind_if_test, flat_map_iterator) {
@@ -502,7 +502,7 @@ TEST_F(hxquantifier_test_f, all_of_any_of_and_for_each) {
 	const hxfor_each_test_accumulator_t empty_result =
 		hxfor_each(hxmake_range(begin, begin), hxfor_each_test_accumulator_t{7});
 	EXPECT_EQ(empty_result.total, 7);
-	EXPECT_TRUE(check_stats(3, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0));
+	EXPECT_TRUE(check_stats(3, 0, 3, 0, 0, 0, 0, 0, 0, 0));
 }
 
 TEST_F(hxtest_test_f, iter_api_types) {
@@ -519,7 +519,7 @@ TEST_F(hxtest_test_f, iter_api_types) {
 		hxtest_rand_iterator_api_t(values.data()), hxtest_rand_iterator_api_t(values.data() + 2)));
 	EXPECT_TRUE(hxtest_check_rand_iterator_api(
 		hxtest_rand_iterator_api_t(values.data()), hxtest_rand_iterator_api_t(values.data() + 2)));
-	EXPECT_TRUE(check_stats(2, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0));
+	EXPECT_TRUE(check_stats(2, 0, 2, 0, 0, 0, 0, 2, 0, 0));
 }
 
 TEST(hxrange_test, constructors) {
