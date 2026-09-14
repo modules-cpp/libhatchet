@@ -86,10 +86,10 @@ class hxtest_iterator_api_base_t {
 public:
 	hxtest_object& operator*(void) const { return *m_pointer; }
 	derived_t& operator++(void) { ++m_pointer; return static_cast<derived_t&>(*this); }
-	derived_t operator++(int) { derived_t it(static_cast<derived_t&>(*this)); ++m_pointer; return it; }
 	bool operator==(const derived_t& x) const { return m_pointer == x.m_pointer; }
 	bool operator!=(const derived_t& x) const { return m_pointer != x.m_pointer; }
 
+	derived_t operator++(int) = delete;
 	hxtest_iterator_api_base_t(int) = delete;
 	hxtest_iterator_api_base_t(hxnil_t) = delete;
 	derived_t& operator--(void) = delete;
@@ -128,7 +128,6 @@ public:
 	explicit hxtest_bidirectional_iterator_api_t(hxtest_object* pointer)
 		: hxtest_iterator_api_base_t<hxtest_bidirectional_iterator_api_t>(pointer) { }
 	hxtest_bidirectional_iterator_api_t& operator--(void);
-	hxtest_bidirectional_iterator_api_t operator--(int);
 };
 
 class hxtest_rand_iterator_api_t : public hxtest_iterator_api_base_t<hxtest_rand_iterator_api_t> {
@@ -136,7 +135,6 @@ public:
 	explicit hxtest_rand_iterator_api_t(hxtest_object* pointer)
 		: hxtest_iterator_api_base_t<hxtest_rand_iterator_api_t>(pointer) { }
 	hxtest_rand_iterator_api_t& operator--(void);
-	hxtest_rand_iterator_api_t operator--(int);
 	hxtest_rand_iterator_api_t operator+(ptrdiff_t offset) const;
 	hxtest_rand_iterator_api_t operator-(ptrdiff_t offset) const;
 	ptrdiff_t operator-(const hxtest_rand_iterator_api_t& x) const { return m_pointer - x.m_pointer; }
@@ -150,9 +148,7 @@ bool hxtest_check_forward_iterator_api(iterator_t first, iterator_t last) {
 	iterator_t second = first;
 	++second;
 	(void)*first;
-	iterator_t post = first++;
-	bool ok = (post != second) && (first == second);
-	ok = ok && (first != last) && (post != last);
+	bool ok = (first != second) && (first != last) && (second != last);
 	return ok;
 }
 
@@ -164,9 +160,8 @@ bool hxtest_check_bidirectional_iterator_api(iterator_t first, iterator_t last) 
 	(void)*first;
 	iterator_t walked = second;
 	--walked;
-	iterator_t post = second--;
-	bool ok = (walked == first) && (second == first) && (post != first);
-	ok = ok && (first != last) && (post != last);
+	bool ok = (walked == first) && (first != second);
+	ok = ok && (first != last) && (second != last);
 	return ok;
 }
 

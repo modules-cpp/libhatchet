@@ -34,7 +34,6 @@ template<typename T_>
 concept hxforward_iterator_concept_ = requires(T_& x_, const T_& y_) {
 	*x_;
 	{ ++x_ } -> hxsame_as<T_&>;
-	{ x_++ } -> hxsame_as<T_>;
 	{ x_ == y_ } -> hxconvertible_to<bool>;
 	{ x_ != y_ } -> hxconvertible_to<bool>;
 };
@@ -42,7 +41,6 @@ template<typename T_>
 concept hxbidirectional_iterator_concept_ = hxforward_iterator_concept_<T_>
 && requires(T_& x_) {
 	{ --x_ } -> hxsame_as<T_&>;
-	{ x_-- } -> hxsame_as<T_>;
 };
 template<typename T_>
 concept hxrandom_iterator_concept_ = hxbidirectional_iterator_concept_<T_>

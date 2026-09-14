@@ -273,18 +273,10 @@ hxtest_bidirectional_iterator_api_t& hxtest_bidirectional_iterator_api_t::operat
 	--m_pointer; return *this;
 }
 
-hxtest_bidirectional_iterator_api_t hxtest_bidirectional_iterator_api_t::operator--(int) {
-	hxtest_bidirectional_iterator_api_t it(*this); --m_pointer; return it;
-}
-
 // -- hxtest_rand_iterator_api_t -------------------------------------------------------
 
 hxtest_rand_iterator_api_t& hxtest_rand_iterator_api_t::operator--(void) {
 	--m_pointer; return *this;
-}
-
-hxtest_rand_iterator_api_t hxtest_rand_iterator_api_t::operator--(int) {
-	hxtest_rand_iterator_api_t it(*this); --m_pointer; return it;
 }
 
 hxtest_rand_iterator_api_t hxtest_rand_iterator_api_t::operator+(ptrdiff_t offset) const {
