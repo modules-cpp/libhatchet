@@ -157,6 +157,7 @@
         "Noname",
         "noncode",
         "nostdinc",
+        "NRVO",
         "ntfs",
         "nullptr",
         "objfile",
