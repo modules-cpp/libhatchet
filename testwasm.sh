@@ -55,7 +55,7 @@ HX_EOF_
 	HX_SERVER_PID_=$!
 	set +e
 
-	# Launch Chrome if it is installed.
+	# Launch Google Chrome if it is installed.
 	if which google-chrome; then
 		google-chrome http://0.0.0.0:9876/ >/dev/null 2>&1 &
 	fi

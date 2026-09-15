@@ -132,9 +132,12 @@ TEST_F(hxptr_test_f, operator_equal_hxptr) {
 	EXPECT_FALSE(b != c);
 	const hxptr<hxtest_object> d(hxnew<hxtest_object>(5));
 	const hxptr<hxtest_object> e(hxnew<hxtest_object>(5));
-	EXPECT_FALSE(d == e);
-	EXPECT_TRUE(d != e);
-	EXPECT_TRUE(check_stats(3, 0, 3, 0, 0, 0, 0, 0, 0, 0));
+	EXPECT_TRUE(d == e);
+	EXPECT_FALSE(d != e);
+	const hxptr<hxtest_object> f(hxnew<hxtest_object>(31));
+	EXPECT_FALSE(d == f);
+	EXPECT_TRUE(d != f);
+	EXPECT_TRUE(check_stats(4, 0, 4, 0, 0, 0, 0, 4, 0, 0));
 }
 
 TEST_F(hxptr_test_f, operator_equal_nullptr) {
@@ -296,11 +299,11 @@ TEST_F(hxptr_test_f, hxkey_equal) {
 	const hxptr<hxtest_object> b(hxnew<hxtest_object>(10));
 	const hxptr<hxtest_object> null_a;
 	const hxptr<hxtest_object> null_b;
-	EXPECT_FALSE(hxkey_equal(a, b));
+	EXPECT_TRUE(hxkey_equal(a, b));
 	EXPECT_TRUE(hxkey_equal(a, a));
 	EXPECT_TRUE(hxkey_equal(null_a, null_b));
 	EXPECT_FALSE(hxkey_equal(a, null_a));
-	EXPECT_TRUE(check_stats(2, 0, 2, 0, 0, 0, 0, 0, 0, 0));
+	EXPECT_TRUE(check_stats(2, 0, 2, 0, 0, 0, 0, 2, 0, 0));
 }
 
 TEST_F(hxptr_test_f, hxkey_hash) {

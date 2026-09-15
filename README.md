@@ -120,9 +120,8 @@ unused except when initializing system allocators.
   reader provided.
 
 - **Profiling System**: Samples processor cycles to build a hierarchical
-  timeline capture compatible with Chrome's `chrome://tracing` viewer. Navigate
-  the capture with the W, A, S and D keys. Uncommon hardware may need one line
-  of assembly.
+  timeline capture compatible with Chrome Trace Event JSON. `speedscope` is
+  recommended.
 
 - **Task Queue**: An unopinionated task queue with priorities and a worker pool.
   An execution graph is also available as a layer on top.

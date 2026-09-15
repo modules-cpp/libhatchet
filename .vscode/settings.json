@@ -206,6 +206,7 @@
         "SIGTRAP",
         "skipasserts",
         "smoketest",
+        "speedscope",
         "splitlines",
         "stdatomic",
         "stdint",

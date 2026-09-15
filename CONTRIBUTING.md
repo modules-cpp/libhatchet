@@ -200,6 +200,9 @@ Support for `ILP32`, `LP64` and `LLP64` is required to pass tests. All
 builtins as this code is intended to compile on any C++ compiler. All test
 symbols that show up in the linker map must contain `hx` and `test`.
 
+Do a fresh run of all profiling reported on before reporting profiling data.
+Verify a tool's raw output data instead of trusting a prior summary of it.
+
 Do not write test suites until requested as the design may not be finalized. Do
 not write redundant tests. Ignore spell checker errors. Use American English.
 

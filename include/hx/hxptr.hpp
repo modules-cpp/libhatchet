@@ -71,11 +71,14 @@ public:
 	/// Returns `true` if the owned pointer is non-null.
 	hxattr_nodiscard hxconstexpr explicit operator bool(void) const;
 
-	/// Returns `true` if `a` and `b` point to the same object.
+	/// Returns `true` if both `hxptr` are null or both own equal values.
 	/// - `a` : An `hxptr`.
 	/// - `b` : The `hxptr` to compare against.
 	hxattr_nodiscard friend hxconstexpr bool operator==(const hxptr& a_, const hxptr& b_) {
-		return a_.m_ptr_ == b_.m_ptr_;
+		if(a_.m_ptr_ == hxnull || b_.m_ptr_ == hxnull) {
+			return a_.m_ptr_ == b_.m_ptr_;
+		}
+		return *a_.m_ptr_ == *b_.m_ptr_;
 	}
 
 	/// Returns `true` if the pointer owned by `a` is null.
@@ -86,7 +89,7 @@ public:
 	}
 
 #if HX_CPLUSPLUS < 202002L
-	/// Returns `true` if this and `x` point to different objects.
+	/// Returns `true` if exactly one `hxptr` is null or the owned values differ.
 	/// - `x` : The `hxptr` to compare against.
 	hxattr_nodiscard hxconstexpr bool operator!=(const hxptr& x_) const { return !(*this == x_); }
 

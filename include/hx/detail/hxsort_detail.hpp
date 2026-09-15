@@ -74,9 +74,9 @@ void hxheapsort_(iterator_t_ begin_, iterator_t_ end_, const less_t_& less_) {
 
 // Sorts `[begin, end)` in place using dual-pivot quicksort. Based on Java's
 // `Array.sort` implementation details. Should be resistant to degeneration.
-// Average time: `O(n log n)`, worst time: `O(n^2)`. This algorithm is only
-// intended to sort ranges over a minimum length before calling back to the
-// `sort_callback` parameter.
+// Time: `O(n log n)`, guaranteed by the depth counter and heapsort fallback in
+// `hxintro_sort_`. This algorithm is only intended to sort ranges over a
+// minimum length before calling back to the `sort_callback` parameter.
 template<hxrandom_iterator_concept_ iterator_t_, typename less_t_, typename sort_callback_t_>
 hxinline hxconstexpr hxattr_flatten
 void hxpartition_sort_(hxrestrict_t<iterator_t_> begin_, iterator_t_ end_, const less_t_& less_,

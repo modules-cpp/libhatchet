@@ -16,7 +16,7 @@
 /// | `hxprofiler_start` | Clears existing samples then starts recording. |
 /// | `hxprofiler_stop` | Stops recording while retaining samples. |
 /// | `hxprofiler_log` | Logs captured samples to the system log. |
-/// | `hxprofiler_write_to_chrome_tracing` | Writes captured samples to Chrome tracing JSON. |
+/// | `hxprofiler_write_to_chrome_tracing` | Writes captured samples to Chrome Trace Event JSON. |
 
 #include "libhatchet.h"
 #if !(HX_USE_MACROS_WITH_MODULE)
@@ -88,8 +88,8 @@ HX_NS_END_
 
 #if HX_USE_FILE_IO
 /// `hxprofiler_write_to_chrome_tracing(const char* filename)` - Stops sampling
-/// and writes Chrome Trace Event JSON which is viewable at
-/// https://ui.perfetto.dev/. Compiles to a NOP when not in use.
+/// and writes Chrome Trace Event JSON which is viewable using `speedscope` or
+/// over at https://ui.perfetto.dev/. Compiles to a NOP when not in use.
 /// - `filename` : Path to the output `.json` file.
 #define hxprofiler_write_to_chrome_tracing(filename_) \
 	HX_PROFILE_ONLY_(HX_NS_PREFIX_ hxdetail_::hxg_profiler_.write_to_chrome_tracing_(filename_))

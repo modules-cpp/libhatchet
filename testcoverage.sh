@@ -204,7 +204,7 @@ if [ "$HX_STATUS_" -ne 0 ]; then
 	exit 1
 fi
 
-# Launch Chrome if it is installed.
+# Launch Google Chrome if it is installed.
 if [ -n "$HX_VERBOSE_" ] && which google-chrome; then
 	set -o xtrace
 	google-chrome "${HX_DEST_DIR_}coverage_details.html" >/dev/null 2>&1;
