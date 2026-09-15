@@ -47,9 +47,34 @@ hxinline_constexpr double hxmilliseconds_per_cycle = 1.0e+3 / hxcycles_per_secon
 /// processor cycle, derived from `hxcycles_per_second`.
 hxinline_constexpr double hxmicroseconds_per_cycle = 1.0e+6 / hxcycles_per_second;
 
+constexpr uint64_t hxc_profiler_header64 = 0x0123456789abcdefull;
+
+constexpr size_t hxc_profiler_label_max_size = 15u;
+
+constexpr uint32_t hxc_profiler_version = 100u;
+
 /// `hxtime_sample_cycles(void)` - Set up the processor cycle counter for your
 /// architecture. This is callable without enabling `HX_USE_PROFILER`.
 hxinline hxcycles_t hxtime_sample_cycles(void);
+
+// Binary record layout for a profiler sample.
+class hxprofiler_sample {
+public:
+	const char sample_label[hxc_profiler_label_max_size + 1u];
+	uint64_t sample_begin;
+	uint64_t sample_end;
+	uint32_t sample_thread_id;
+};
+
+// Binary header for raw profiler data.
+class hxprofiler_header {
+public:
+	uint64_t profile_header; // = hxc_profiler_label_max_size
+	uint32_t profile_version; // = hxc_profiler_version
+	uint32_t sample_size;
+	// hxprofiler_sample array follows.
+	hxprofiler_sample samples[0];
+};
 
 HX_NS_END_
 
