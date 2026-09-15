@@ -321,6 +321,8 @@ TEST(hxarray_test, operator_equal_and_operator_less) {
 	const hxarray<int, 3> c{ 1, 2, 4 };
 	EXPECT_TRUE(a == b);
 	EXPECT_FALSE(a == c);
+	EXPECT_FALSE(a != b);
+	EXPECT_TRUE(a != c);
 	EXPECT_FALSE(a < b);
 	EXPECT_TRUE(a < c);
 	EXPECT_FALSE(c < a);
@@ -331,9 +333,6 @@ TEST(hxarray_test, operator_equal_and_operator_less) {
 	const hxarray<int, 4> d{ 1, 2, 3, 4 };
 	const hxarray<int, 4> e{ 1, 2, 4, 0 };
 	const hxarray<int, 4> f{ 0, 2, 3, 4 };
-	EXPECT_FALSE(a == d);
-	EXPECT_FALSE(d == a);
-	EXPECT_TRUE(a != d);
 	EXPECT_TRUE(a < d);
 	EXPECT_FALSE(d < a);
 	EXPECT_TRUE(a < e);
@@ -419,6 +418,7 @@ TEST(hxarray_test, operator_equal_mismatched_capacity) {
 		const hxarray<int, hxallocator_dynamic_capacity> a{1, 2};
 		const hxarray<int, hxallocator_dynamic_capacity> b{1, 2, 3};
 		EXPECT_FALSE(a == b);
+		EXPECT_FALSE(b == a);
 	}
 }
 

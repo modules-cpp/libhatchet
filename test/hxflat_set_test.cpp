@@ -92,6 +92,17 @@ TEST(hxflat_set_test, add_range_is_correct_true_unordered_after_existing_asserts
 	s.add_range(true, hxmake_range(more, more + 1));
 	EXPECT_EQ(skip.remaining(), 0);
 }
+
+TEST(hxflat_set_test, multiset_add_range_is_correct_true_unsorted_asserts_bad_ordering) {
+	hxlog_warning("EXPECTING_ASSERT_FAILURE");
+	hxflat_multiset<int, 4> s;
+	s.reserve(4);
+	s.emplace(31);
+	const int more[] = { 31, 33, 32 };
+	const hxtest_skip_asserts skip(1);
+	s.add_range(true, hxmake_range(more, more + 3));
+	EXPECT_EQ(skip.remaining(), 0);
+}
 #endif
 
 TEST(hxflat_set_test, operator_equal_int_key_type_detects_length_and_value_mismatch) {

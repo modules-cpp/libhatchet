@@ -86,6 +86,17 @@ TEST(hxflat_map_test, add_range_is_correct_true_unordered_after_existing_asserts
 	m.add_range(true, hxmake_range(more, more + 1));
 	EXPECT_EQ(skip.remaining(), 0);
 }
+
+TEST(hxflat_map_test, multimap_add_range_is_correct_true_unsorted_asserts_bad_ordering) {
+	hxlog_warning("EXPECTING_ASSERT_FAILURE");
+	hxflat_multimap<int, int, 4> m;
+	m.reserve(4);
+	m.emplace(31, 310);
+	const hxpair<int, int> more[] = { {31, 311}, {33, 330}, {32, 320} };
+	const hxtest_skip_asserts skip(1);
+	m.add_range(true, hxmake_range(more, more + 3));
+	EXPECT_EQ(skip.remaining(), 0);
+}
 #endif
 
 TEST(hxflat_map_test, operator_equal_int_mapped_type_detects_key_and_value_mismatch) {

@@ -168,9 +168,7 @@ public:
 	/// Callers must check the return value to detect mismatches.
 	/// - `a` : An array.
 	/// - `b` : The other array.
-	template<hxsize_t capacity_x_>
-	hxattr_nodiscard friend bool operator==(const hxarray& a_,
-			const hxarray<T_, capacity_x_>& b_) {
+	hxattr_nodiscard friend bool operator==(const hxarray& a_, const hxarray& b_) {
 		return hxequal_range(a_, b_);
 	}
 

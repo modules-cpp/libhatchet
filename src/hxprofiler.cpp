@@ -25,11 +25,12 @@ hxconsole_command_named(*+[](const char* filename) -> bool {
 } // namespace {
 namespace hxdetail_ {
 
-// -- Variables ----------------------------------------------------------------
+// -- hxprofiler_internal_ -----------------------------------------------------
 
 hxprofiler_internal_ hxg_profiler_;
 
-// -- hxprofiler_internal_ -----------------------------------------------------
+
+hxprofiler_internal_::hxprofiler_internal_() : m_is_started_(false) { }
 
 void hxprofiler_internal_::start_(void) {
 #if HX_USE_THREADS
@@ -66,6 +67,10 @@ void hxprofiler_internal_::log_(void) {
 	hxlog_handler(hxlog_level_console, " ]\n");
 }
 
+size_t hxprofiler_internal_::size_(void) const {
+	return sizeof(hxprofiler_header) + sizeof(hxprofiler_sample) * static_cast<size_t>(m_records.size());
+}
+
 #if HX_USE_FILE_IO
 void hxprofiler_internal_::write_(hxfile& file) {
 #if HX_USE_THREADS
@@ -96,7 +101,7 @@ void hxprofiler_internal_::write_(hxfile& file) {
 	}
 
 	if(batch_size != 0) {
-		file.write(samples, sizeof(hxprofiler_sample) * batch_size);
+		file.write(samples, sizeof(hxprofiler_sample) * static_cast<size_t>(batch_size));
 	}
 }
 

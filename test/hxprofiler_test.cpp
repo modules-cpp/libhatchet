@@ -140,12 +140,15 @@ TEST(hxprofiler_test, write_round_trip_matches_size_and_samples) {
 	{ hxprofile_scope("Alpha"); }
 	{ hxprofile_scope("Fifteen_Letters"); }
 	{ hxprofile_scope("Sixteen__Letters"); }
+	for(int i = 0; i < 14; ++i) {
+		hxprofile_scope("Batch");
+	}
 	{
 		hxfile writer(hxfile::open_mode_out | hxfile::open_mode_asserts, "profile.bin");
 		hxprofiler_write(writer);
 	}
 
-	alignas(hxprofiler_header) uint8_t buffer[sizeof(hxprofiler_header) + 3u * sizeof(hxprofiler_sample)];
+	alignas(hxprofiler_header) uint8_t buffer[sizeof(hxprofiler_header) + 17u * sizeof(hxprofiler_sample)];
 	EXPECT_EQ(hxprofiler_size(), sizeof buffer);
 	hxfile reader(hxfile::open_mode_in, "profile.bin");
 	EXPECT_EQ(reader.read(buffer, sizeof buffer, sizeof buffer), sizeof buffer);
@@ -156,7 +159,7 @@ TEST(hxprofiler_test, write_round_trip_matches_size_and_samples) {
 	const hxprofiler_header* const header = reinterpret_cast<const hxprofiler_header*>(buffer);
 	EXPECT_EQ(header->profile_header, hxc_profiler_header64);
 	EXPECT_EQ(header->profile_version, hxc_profiler_version);
-	EXPECT_EQ(header->sample_size, 3u);
+	EXPECT_EQ(header->sample_size, 17u);
 
 	const hxprofiler_sample* const samples = reinterpret_cast<const hxprofiler_sample*>(header + 1);
 	EXPECT_STREQ(samples[0].sample_label, "Alpha");
@@ -169,6 +172,10 @@ TEST(hxprofiler_test, write_round_trip_matches_size_and_samples) {
 	EXPECT_LE(samples[2].sample_begin, samples[2].sample_end);
 	EXPECT_EQ(samples[0].sample_thread_id, static_cast<uint32_t>(hxthread_id()));
 	EXPECT_EQ(samples[2].sample_thread_id, static_cast<uint32_t>(hxthread_id()));
+
+	EXPECT_STREQ(samples[15].sample_label, "Batch");
+	EXPECT_STREQ(samples[16].sample_label, "Batch");
+	EXPECT_LE(samples[15].sample_end, samples[16].sample_begin);
 }
 #endif // HX_USE_FILE_IO
 #endif // HX_USE_PROFILER
