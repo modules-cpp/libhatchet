@@ -57,6 +57,7 @@ public:
 	void stop_();
 	void log_();
 #if HX_USE_FILE_IO
+	void write_(hxfile& file_);
 	void write_to_chrome_tracing_(const char* filename) hxattr_nonnull(2);
 #endif
 

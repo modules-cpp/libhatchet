@@ -67,6 +67,39 @@ void hxprofiler_internal_::log_(void) {
 }
 
 #if HX_USE_FILE_IO
+void hxprofiler_internal_::write_(hxfile& file) {
+#if HX_USE_THREADS
+	const hxunique_lock profiler_lock(hxg_profiler_.m_mutex_);
+#endif
+	m_is_started_ = false;
+
+	const hxprofiler_header header = {
+		hxc_profiler_header64, hxc_profiler_version, static_cast<uint32_t>(m_records.size()) };
+	file.write(&header, sizeof header);
+
+	hxprofiler_sample samples[16];
+	hxsize_t batch_size = 0;
+
+	const hxprofiler_record_* const end = m_records.end();
+	for(const hxprofiler_record_* hxrestrict rec = m_records.begin(); rec != end; ++rec) {
+		hxprofiler_sample& sample = samples[batch_size];
+		::memset(&sample, 0x00, sizeof sample);
+		::strncpy(sample.sample_label, rec->m_label_, hxc_profiler_label_max_size);
+		sample.sample_begin = rec->m_begin_;
+		sample.sample_end = rec->m_end_;
+		sample.sample_thread_id = rec->m_thread_id_;
+
+		if(++batch_size == 16) {
+			file.write(samples, sizeof samples);
+			batch_size = 0;
+		}
+	}
+
+	if(batch_size != 0) {
+		file.write(samples, sizeof(hxprofiler_sample) * batch_size);
+	}
+}
+
 // https://ui.perfetto.dev/
 void hxprofiler_internal_::write_to_chrome_tracing_(const char* filename) {
 #if HX_USE_THREADS
