@@ -290,8 +290,9 @@ public:
 	template<typename ref_t_>
 	void push_front(ref_t_&& x_) noexcept;
 
-	/// Allocates storage for a dynamic deque. May only be called once and only
-	/// when the deque has no storage. `size` must be a power of two.
+	/// Requires `size` be a power of two, since indexing masks against
+	/// `capacity() - 1`, then forwards `size`, `allocator` and `alignment`
+	/// unchanged to `reserve_storage`.
 	/// - `size` : The number of elements to allocate storage for.
 	/// - `allocator` : The memory manager ID to use for allocation.
 	/// - `alignment` : The alignment to use for the allocation.

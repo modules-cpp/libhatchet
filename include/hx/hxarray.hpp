@@ -310,10 +310,10 @@ public:
 		-> decltype(self_.end());
 #endif // HX_CPLUSPLUS >= 202302L
 
-	/// Allocates storage for `size` elements and default constructs them when
-	/// `capacity` is `hxallocator_dynamic_capacity`. The current capacity
-	/// becomes `size` elements. Reallocation is not allowed. When `capacity` is
-	/// fixed, `size` must equal `capacity`.
+	/// Forwards `size`, `allocator` and `alignment` unchanged to
+	/// `reserve_storage`, then default constructs the newly backed elements
+	/// when `capacity` is `hxallocator_dynamic_capacity` and this is the first
+	/// call.
 	/// - `size` : The number of elements to allocate and construct.
 	/// - `allocator` : The memory manager ID to use for allocation.
 	/// - `alignment` : The alignment to use for the allocation.

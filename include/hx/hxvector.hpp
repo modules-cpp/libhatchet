@@ -541,7 +541,8 @@ public:
 	template<typename ref_t_>
 	T_& push_heap(ref_t_&& arg_) noexcept;
 
-	/// Reserves storage for at least the specified number of elements.
+	/// Forwards `size`, `allocator` and `alignment` unchanged to
+	/// `reserve_storage`.
 	/// - `size` : The number of elements to reserve storage for.
 	/// - `allocator` : The memory manager ID to use for allocation (default:
 	///   `hxslab_allocator_current`)

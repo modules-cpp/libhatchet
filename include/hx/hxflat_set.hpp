@@ -321,8 +321,8 @@ public:
 	template<typename key_u_>
 	const key_t_* push_back(key_u_&& key_) noexcept;
 
-	/// Allocates storage for `cap` keys. When `capacity` is fixed, `cap` must
-	/// equal `capacity`. Reallocation is not allowed.
+	/// Forwards `size`, `allocator` and `alignment` unchanged to
+	/// `reserve_storage`.
 	/// - `cap` : The number of elements to allocate storage for.
 	/// - `allocator` : The memory manager ID to use for allocation (default:
 	///   `hxslab_allocator_current`)

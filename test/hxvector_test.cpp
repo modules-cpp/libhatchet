@@ -685,7 +685,6 @@ TEST_F(hxvector_test_f, resizing) {
 	{
 		static const int32_t nums[5] = { 51, 52, 53, 54, 55 };
 		hxvector<hxtest_object> objs(12);
-		objs.reserve(10);
 		objs.assign(nums, nums + 5);
 		objs.resize(3, hxtest_object());
 		EXPECT_EQ(objs.size(), 3);
