@@ -492,14 +492,23 @@ TEST(hxconsole_test, function_overflow) {
 	EXPECT_TRUE(hxconsole_exec_line("hxconsole_test_fn_char 127"));
 	EXPECT_EQ(hxs_console_test_fn_char, static_cast<char>(127));
 	hxs_console_test_fn_char = 0;
+#if CHAR_MIN < 0
 	EXPECT_FALSE(hxconsole_exec_line("hxconsole_test_fn_char 128"));
 	EXPECT_EQ(hxs_console_test_fn_char, static_cast<char>(0));
-#if CHAR_MIN < 0
 	hxs_console_test_fn_char = 0;
 	EXPECT_TRUE(hxconsole_exec_line("hxconsole_test_fn_char -128"));
 	EXPECT_EQ(hxs_console_test_fn_char, static_cast<char>(-128));
 	hxs_console_test_fn_char = 0;
 	EXPECT_FALSE(hxconsole_exec_line("hxconsole_test_fn_char -129"));
+	EXPECT_EQ(hxs_console_test_fn_char, static_cast<char>(0));
+#else
+	EXPECT_TRUE(hxconsole_exec_line("hxconsole_test_fn_char 128"));
+	EXPECT_EQ(hxs_console_test_fn_char, static_cast<char>(128));
+	hxs_console_test_fn_char = 0;
+	EXPECT_TRUE(hxconsole_exec_line("hxconsole_test_fn_char 255"));
+	EXPECT_EQ(hxs_console_test_fn_char, static_cast<char>(255));
+	hxs_console_test_fn_char = 0;
+	EXPECT_FALSE(hxconsole_exec_line("hxconsole_test_fn_char 256"));
 	EXPECT_EQ(hxs_console_test_fn_char, static_cast<char>(0));
 #endif
 }
