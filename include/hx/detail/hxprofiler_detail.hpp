@@ -33,6 +33,7 @@ hxinline hxcycles_t hxtime_sample_cycles(void) {
 #elif defined __aarch64__
 	__asm__ volatile("mrs %0, cntvct_el0" : "=r"(cycles_));
 	static const double hxs_cycle_scale_ = []() {
+		// NOLINTNEXTLINE(misc-const-correctness)
 		uint64_t frequency_ = 0;
 		__asm__ volatile("mrs %0, cntfrq_el0" : "=r"(frequency_));
 		return HX_CYCLES_PER_SECOND / static_cast<double>(frequency_);
