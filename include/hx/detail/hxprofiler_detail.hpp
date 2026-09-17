@@ -37,7 +37,9 @@ hxinline hxcycles_t hxtime_sample_cycles(void) {
 		uint64_t frequency_ = 0;
 		__asm__ volatile("mrs %0, cntfrq_el0" : "=r"(frequency_));
 		return HX_CYCLES_PER_SECOND / static_cast<double>(frequency_);
+		// GCOVR_EXCL_START. The static initialization guard has an untestable race branch.
 	}();
+	// GCOVR_EXCL_STOP
 	cycles_ = static_cast<uint64_t>(static_cast<double>(cycles_) * hxs_cycle_scale_);
 #else
 	static_assert(0, "Implement hxtime_sample_cycles");
