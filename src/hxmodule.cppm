@@ -21,7 +21,7 @@ module;
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef __wasm__
+#if defined __x86_64__ || defined __i386__ || defined _M_X64 || defined _M_IX86
 #if __has_include(<x86intrin.h>)
 #include <x86intrin.h>
 #elif __has_include(<intrin.h>)

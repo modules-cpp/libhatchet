@@ -30,8 +30,16 @@ hxinline hxcycles_t hxtime_sample_cycles(void) {
 	cycles_ = static_cast<uint64_t>(t_);
 #elif defined __x86_64__ || defined __i386__ || defined _M_X64 || defined _M_IX86
 	cycles_ = __rdtsc();
+#elif defined __aarch64__
+	__asm__ volatile("mrs %0, cntvct_el0" : "=r"(cycles_));
+	static const double hxs_cycle_scale_ = []() {
+		uint64_t frequency_ = 0;
+		__asm__ volatile("mrs %0, cntfrq_el0" : "=r"(frequency_));
+		return HX_CYCLES_PER_SECOND / static_cast<double>(frequency_);
+	}();
+	cycles_ = static_cast<uint64_t>(static_cast<double>(cycles_) * hxs_cycle_scale_);
 #else
-static_assert(0, "Implement hxtime_sample_cycles");
+	static_assert(0, "Implement hxtime_sample_cycles");
 #endif
 	return static_cast<hxcycles_t>(cycles_);
 }
